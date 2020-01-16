@@ -27,35 +27,14 @@ public class App {
     ColorProcessingResult processImage(String url) {
         try {
             final BufferedImage image = downloadImage(url);
-            final HashMap<String, Integer> occurrences = new HashMap<>();
-            for (int x = 0; x < image.getWidth(); x++) {
-                for (int y = 0; y < image.getHeight(); y++) {
-                    final String rgb = Integer.toHexString(image.getRGB(x, y)).substring(0,6);
-                    if (occurrences.get(rgb) == null) {
-                        occurrences.put(rgb, 1);
-                    } else {
-                        int existing = occurrences.get(rgb);
-                        occurrences.put(rgb, existing + 1);
-                    }
-                }
-            }
-            Map.Entry<String, Integer> color1 = new AbstractMap.SimpleEntry<>("", 0);
-            Map.Entry<String, Integer> color2 = new AbstractMap.SimpleEntry<>("", 0);
-            Map.Entry<String, Integer> color3 = new AbstractMap.SimpleEntry<>("", 0);
-
-            for (Map.Entry<String, Integer> entry : occurrences.entrySet()) {
-                if (entry.getValue() > color1.getValue()) {
-                    color3 = color2;  //propagate runners up, order matters
-                    color2 = color1;
-                    color1 = entry;
-                }
-            }
+            final HashMap<String, Integer> occurrences = getColorOccurrences(image);
+            final String[] mostPrevelantColors = determineMostPrevelantColors(occurrences);
 
             return new ColorProcessingResult(
                 url,
-                color1.getKey(),
-                color2.getKey(),
-                color3.getKey()
+                mostPrevelantColors[0],
+                mostPrevelantColors[1],
+                mostPrevelantColors[2]
             );
 
 
@@ -63,6 +42,45 @@ public class App {
             e.printStackTrace();
         }
         throw new RuntimeException("Not supposed to happen");
+    }
+
+    private HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
+
+        final HashMap<String, Integer> occurrences = new HashMap<>();
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                final String rgb = convertToRgbHex(image.getRGB(x, y));
+                if (occurrences.get(rgb) == null) {
+                    occurrences.put(rgb, 1);
+                } else {
+                    int existing = occurrences.get(rgb);
+                    occurrences.put(rgb, existing + 1);
+                }
+            }
+        }
+        return occurrences;
+    }
+
+    private String[] determineMostPrevelantColors(HashMap<String, Integer> map){
+
+        Map.Entry<String, Integer> color1 = new AbstractMap.SimpleEntry<>("", 0);
+        Map.Entry<String, Integer> color2 = new AbstractMap.SimpleEntry<>("", 0);
+        Map.Entry<String, Integer> color3 = new AbstractMap.SimpleEntry<>("", 0);
+
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (entry.getValue() > color1.getValue()) {
+                color3 = color2;  //propagate runners up, order matters
+                color2 = color1;
+                color1 = entry;
+            }
+        }
+        return new String[]{color1.getKey(), color2.getKey(), color3.getKey()};
+
+    }
+
+    private String convertToRgbHex(int rgbInt) {
+        return Integer.toHexString(rgbInt)
+            .substring(0, 6); //ignore alpha channel if it exists
     }
 
     @Data

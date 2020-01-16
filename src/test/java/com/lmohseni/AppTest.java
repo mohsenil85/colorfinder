@@ -8,14 +8,14 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class AppTest {
 
     App app = new App();
 
-    final String referenceImageUrl = "http://i.imgur.com/FApqk3D.jpg";
+    final String referenceImageUrl = "http://i.imgur.com/TKLs9lo.jpg";
 
     final File referenceImage = new File("src/test/resources/test-image.jpg");
 
@@ -66,6 +66,11 @@ public class AppTest {
     @Test
     public void processImage() {
         final App.ColorProcessingResult result = app.processImage(referenceImageUrl);
+
+        assertEquals(referenceImageUrl,result.getImageUrl());
+        assertEquals("ffffff",result.getColor1());
+        assertEquals("fffefe",result.getColor2());
+        assertEquals("fff7f7",result.getColor3());
     }
 
 }
