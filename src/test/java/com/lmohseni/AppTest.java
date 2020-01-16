@@ -65,8 +65,7 @@ public class AppTest {
 
     @Test
     public void processImage() {
-        final BufferedImage image = mock(BufferedImage.class);
-        app.processImage(image);
+        final App.ColorProcessingResult result = app.processImage(referenceImageUrl);
     }
 
 }

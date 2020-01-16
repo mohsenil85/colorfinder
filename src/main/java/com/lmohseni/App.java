@@ -3,14 +3,15 @@ package com.lmohseni;
 import lombok.Data;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-/**
- * Hello world!
- */
+
 public class App {
 
     public static void main(String[] args) {
@@ -31,9 +32,9 @@ public class App {
     class ColorProcessingResult {
 
         String imageUrl;
-        int color1;
-        int color2;
-        int color3;
+        Color color1;
+        Color color2;
+        Color color3;
     }
 
 }
