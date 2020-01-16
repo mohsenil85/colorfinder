@@ -42,9 +42,8 @@ public class AppTest {
 
     @Test
     public void downloadImage() throws IOException {
-        final BufferedInputStream imageBytes = app
+        final BufferedImage actual = app
             .downloadImage(referenceImageUrl);
-        BufferedImage actual = ImageIO.read(imageBytes);
         final BufferedImage expected = ImageIO.read(referenceImage);
         assertTrue(areImagesEqual(expected, actual));
     }
@@ -59,9 +58,8 @@ public class AppTest {
 
     //@Test
     private void retrieveReferenceImage() throws IOException {
-        final BufferedInputStream imageBytes = app
+        final BufferedImage image = app
             .downloadImage(referenceImageUrl);
-        BufferedImage image = ImageIO.read(imageBytes);
         ImageIO.write(image, "JPEG", referenceImage);
 
     }

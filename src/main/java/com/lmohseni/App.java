@@ -1,5 +1,7 @@
 package com.lmohseni;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -13,9 +15,11 @@ public class App {
         System.out.println("Hello World!");
     }
 
-    BufferedInputStream downloadImage(String url) throws IOException {
+    BufferedImage downloadImage(String url) throws IOException {
 
-        return new BufferedInputStream(new URL(url).openStream());
+        final BufferedInputStream inputStream = new BufferedInputStream(
+            new URL(url).openStream());
+        return ImageIO.read(inputStream);
 
     }
 
