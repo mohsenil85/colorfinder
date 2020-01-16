@@ -20,6 +20,6 @@ Overall plan of attack
 1.  Download the image (to InputStream?)
 1.  Compress the image (quality as a config param)
 1.  Find the 3 color averages
-1.  write the result to an sqlite instance (handles concurrent writes)
+1.  write the result to something that handles many writes
 1.  end thread
-1.  sqlite -> csv
+1.  ConcurrentHashMap? -> csv
