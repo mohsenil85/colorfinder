@@ -10,4 +10,4 @@ Notes
 1. project generated with
 `mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
 
-2. run with `java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App`
+2. run with `mvn clean package; java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App`
