@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class AppTest {
 
@@ -55,12 +56,17 @@ public class AppTest {
                 .equals(actual.toString().substring(ignoredLength));
     }
 
-    //@Test
     private void retrieveReferenceImage() throws IOException {
         final BufferedImage image = app
             .downloadImage(referenceImageUrl);
         ImageIO.write(image, "JPEG", referenceImage);
 
+    }
+
+    @Test
+    public void processImage() {
+        final BufferedImage image = mock(BufferedImage.class);
+        app.processImage(image);
     }
 
 }

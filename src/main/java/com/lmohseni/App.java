@@ -1,5 +1,7 @@
 package com.lmohseni;
 
+import lombok.Data;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -19,6 +21,19 @@ public class App {
         return ImageIO.read(
             new BufferedInputStream(
                 new URL(url).openStream()));
+    }
+
+    ColorProcessingResult processImage(BufferedImage image) {
+        return null;
+    }
+
+    @Data
+    class ColorProcessingResult {
+
+        String imageUrl;
+        int color1;
+        int color2;
+        int color3;
     }
 
 }
