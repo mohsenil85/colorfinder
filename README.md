@@ -4,6 +4,7 @@ Find the most prevalent color
 
 What this is
 ------------
+Taken from:  https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132
 
 Notes
 ---
