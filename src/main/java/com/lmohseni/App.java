@@ -16,11 +16,9 @@ public class App {
     }
 
     BufferedImage downloadImage(String url) throws IOException {
-
-        final BufferedInputStream inputStream = new BufferedInputStream(
-            new URL(url).openStream());
-        return ImageIO.read(inputStream);
-
+        return ImageIO.read(
+            new BufferedInputStream(
+                new URL(url).openStream()));
     }
 
 }

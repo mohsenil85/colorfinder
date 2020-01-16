@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -20,8 +19,8 @@ public class AppTest {
     final File referenceImage = new File("src/test/resources/test-image.jpg");
 
     @Before
-    public void setup(){
-        if(!referenceImage.exists()){
+    public void setup() {
+        if (!referenceImage.exists()) {
             try {
                 retrieveReferenceImage();
             } catch (IOException e) {
