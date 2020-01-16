@@ -24,7 +24,27 @@ public class App {
                 new URL(url).openStream()));
     }
 
-    ColorProcessingResult processImage(BufferedImage image) {
+    ColorProcessingResult processImage(String url) {
+        try {
+            final BufferedImage image = downloadImage(url);
+            final int width = image.getWidth();
+            final int height = image.getHeight();
+            int[] pixels = new int[width*height];
+            int idx = 0;
+            for (int x = 0; x < width; x++){
+                for (int y = 0; y < height; y++){
+                    final int rgb = image.getRGB(x, y);
+                    pixels[idx] = rgb;
+                    idx++;
+                }
+            }
+
+            Arrays.sort(pixels);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 
