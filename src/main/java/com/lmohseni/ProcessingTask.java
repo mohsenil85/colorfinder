@@ -45,7 +45,6 @@ public class ProcessingTask implements Runnable {
     HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
         if (image == null) {
             throw new IllegalThreadStateException("got a null image from url:" + imageUrl);
-
         }
 
         final HashMap<String, Integer> occurrences = new HashMap<>();
@@ -76,7 +75,6 @@ public class ProcessingTask implements Runnable {
             }
         }
         return new String[]{color1.getKey(), color2.getKey(), color3.getKey()};
-
     }
 
     private String convertToRgbHex(int rgbInt) {
