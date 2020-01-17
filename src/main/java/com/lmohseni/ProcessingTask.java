@@ -11,25 +11,23 @@ import java.net.URL;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Callable;
 
 @Data
-public class ProcessingTask implements Runnable {
+public class ProcessingTask implements Callable<String[]> {
 
     @NonNull
     private final String imageUrl;
-    @NonNull
-    private final ConcurrentHashMap<String, String[]> resultsMap;
+
 
     @Override
-    public void run() {
+    public String[] call() {
         final BufferedImage image = downloadImage();
         final HashMap<String, Integer> occurrences = getColorOccurrences(image);
-        final String[] mostPrevalentColors = determineMostPrevalentColors(occurrences);
-
-        resultsMap.put(imageUrl, mostPrevalentColors);
-
+        final String[] strings = determineMostPrevalentColors(occurrences);
+        return strings;
     }
+
 
     BufferedImage downloadImage() {
         final URL url;
@@ -51,11 +49,7 @@ public class ProcessingTask implements Runnable {
         for (int x = 0; x < image.getWidth(); x++) {
             for (int y = 0; y < image.getHeight(); y++) {
                 final String rgb = convertToRgbHex(image.getRGB(x, y));
-                if (occurrences.get(rgb) == null) {
-                    occurrences.put(rgb, 1);
-                } else {
-                    occurrences.put(rgb, occurrences.get(rgb) + 1);
-                }
+                occurrences.merge(rgb, 1, Integer::sum);
             }
         }
         return occurrences;
@@ -74,7 +68,7 @@ public class ProcessingTask implements Runnable {
                 color1 = entry;
             }
         }
-        return new String[]{color1.getKey(), color2.getKey(), color3.getKey()};
+        return new String[]{imageUrl, color1.getKey(), color2.getKey(), color3.getKey()};
     }
 
     private String convertToRgbHex(int rgbInt) {

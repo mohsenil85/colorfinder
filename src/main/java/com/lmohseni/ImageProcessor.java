@@ -7,11 +7,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -24,45 +25,46 @@ public class ImageProcessor {
     private final int timeout;
     @NonNull
     private final TimeUnit timeUnit;
-    private final int initialCapacity;
-    private final int loadFactor;
     @NonNull
     private final String imageListUrl;
 
     private ThreadPoolExecutor executor;
-    private ConcurrentHashMap<String, String[]> resultsMap;
+    private HashMap<Integer, String[]> resultsMap;
+    private CompletionService<String[]> completionService;
 
     public void init() {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
-        resultsMap = new ConcurrentHashMap<>(initialCapacity, loadFactor, nThreads);
+        resultsMap = new HashMap<Integer, String[]>();
+        completionService = new ExecutorCompletionService<String[]>(executor);
     }
 
-
-    public ConcurrentHashMap<String, String[]> processAllImages() throws IOException {
-        Set<String> urls;
+    public HashMap<Integer, String[]> processAllImages() throws IOException {
         try (BufferedReader read = new BufferedReader(
             new InputStreamReader(new URL(imageListUrl).openStream()))) {
 
-            //each thread will be reading from this
-            urls = Collections.synchronizedSet(new HashSet<>());
-
             try (Stream<String> lines = read.lines()) {
-                lines.forEach(line -> urls.add(line));
+                lines.forEach(url ->
+                    completionService.submit(new ProcessingTask(url))
+                );
             }
         }
 
-        for (String url : urls) {
-            executor.execute(
-                new ProcessingTask(url, resultsMap)
-            );
+        int idx = 0;
+        while (true) {
+            try {
+                final Future<String[]> take = completionService.poll(timeout, timeUnit);
+                if (take == null) {
+                    break;
+                }
+                final String[] strings = take.get();
+                resultsMap.put(idx, strings);
+                idx++;
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
 
-        executor.shutdown();
-        try {
-            final boolean b = executor.awaitTermination(timeout, timeUnit);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        executor.shutdownNow();
 
         return resultsMap;
 

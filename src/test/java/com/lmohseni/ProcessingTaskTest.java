@@ -10,11 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ProcessingTaskTest {
 
@@ -30,10 +27,7 @@ public class ProcessingTaskTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(
-            imageUrl,
-            map
-        );
+        task = new ProcessingTask(imageUrl);
 
         if (!referenceImage.exists()) {
             try {
@@ -45,10 +39,10 @@ public class ProcessingTaskTest {
     }
 
     @Test
-    public void run() {
-        when(map.put(anyString(), any(String[].class))).thenReturn(null);
-        task.run();
-        verify(map).put(imageUrl, new String[]{"ffffff", "fffefe", "fff7f7"});
+    public void call() {
+        final String[] expected = {"http://i.imgur.com/TKLs9lo.jpg", "ffffff", "fffefe", "fff7f7"};
+        final String[] actual = task.call();
+        assertArrayEquals(expected, actual);
     }
 
     @Test
@@ -63,24 +57,18 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null, map);
+        new ProcessingTask(null);
     }
-
-    @Test(expected = java.lang.IllegalArgumentException.class)
-    public void downloadImageNullMap() {
-        new ProcessingTask(imageUrl, null);
-    }
-
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl", map);
+        final ProcessingTask task = new ProcessingTask("invalidUrl");
         task.downloadImage();
     }
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageNotAJpg() {
-        final ProcessingTask task = new ProcessingTask("http://google.com", map);
+        final ProcessingTask task = new ProcessingTask("http://google.com");
         task.getColorOccurrences(null);
     }
 

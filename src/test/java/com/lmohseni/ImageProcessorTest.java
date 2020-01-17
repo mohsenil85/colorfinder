@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -18,11 +18,9 @@ public class ImageProcessorTest {
     @Before
     public void setUp() {
         imageProcessor = new ImageProcessor(
-            16,
             20,
+            5,
             TimeUnit.SECONDS,
-            100,
-            1,
             localTestFilePath
         );
         imageProcessor.init();
@@ -30,7 +28,7 @@ public class ImageProcessorTest {
 
     @Test
     public void processAllImages() throws IOException {
-        final ConcurrentHashMap<String, String[]> map = imageProcessor
+        final HashMap<Integer, String[]> map = imageProcessor
             .processAllImages();
         assertEquals(33, map.size());
     }
