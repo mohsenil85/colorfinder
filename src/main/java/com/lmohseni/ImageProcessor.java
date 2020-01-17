@@ -32,7 +32,7 @@ public class ImageProcessor {
     private ThreadPoolExecutor executor;
     private ConcurrentHashMap<String, String[]> resultsMap;
 
-    public void init(){
+    public void init() {
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
         resultsMap = new ConcurrentHashMap<>(initialCapacity, loadFactor, nThreads);
     }
@@ -44,7 +44,7 @@ public class ImageProcessor {
             new InputStreamReader(new URL(imageListUrl).openStream()))) {
 
             //each thread will be reading from this
-            urls = Collections.synchronizedSet(new HashSet<String>());
+            urls = Collections.synchronizedSet(new HashSet<>());
 
             try (Stream<String> lines = read.lines()) {
                 lines.forEach(line -> urls.add(line));

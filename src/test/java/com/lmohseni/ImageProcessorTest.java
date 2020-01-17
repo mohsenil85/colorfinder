@@ -16,7 +16,7 @@ public class ImageProcessorTest {
     ImageProcessor imageProcessor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         imageProcessor = new ImageProcessor(
             16,
             20,

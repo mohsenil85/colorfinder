@@ -8,6 +8,8 @@ Taken from:  https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132
 
 Notes
 ---
+1. assumes a java 8 runtime
+1. uses Project Lombok for concision (eg, `@Data`)
 1. project generated with
 `mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
 
