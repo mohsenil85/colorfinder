@@ -1,6 +1,7 @@
 package com.lmohseni;
 
 import lombok.Data;
+import lombok.NonNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -10,49 +11,42 @@ import java.net.URL;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 public class ProcessingTask implements Runnable {
 
+    @NonNull
     private final String imageUrl;
-
+    @NonNull
+    private final ConcurrentHashMap<String, String[]> resultsMap;
 
     @Override
     public void run() {
-        System.out.println("my image url is: " + imageUrl );
+        final BufferedImage image = downloadImage();
+        final HashMap<String, Integer> occurrences = getColorOccurrences(image);
+        final String[] mostPrevalentColors = determineMostPrevalentColors(occurrences);
+
+        resultsMap.put(imageUrl, mostPrevalentColors);
 
     }
 
-    BufferedImage downloadImage() throws IOException {
-        if (imageUrl != null){
-            return ImageIO.read(
-                new BufferedInputStream(
-                    new URL(imageUrl).openStream()));
-        }
-        throw new RuntimeException("Thread was created with null url");
-    }
-
-    ColorProcessingResult processImage() {
+    BufferedImage downloadImage() {
+        final URL url;
         try {
-            final BufferedImage image = downloadImage();
-            final HashMap<String, Integer> occurrences = getColorOccurrences(image);
-            final String[] mostPrevalentColors = determineMostPrevalentColors(occurrences);
-
-            return new ColorProcessingResult(
-                imageUrl,
-                mostPrevalentColors[0],
-                mostPrevalentColors[1],
-                mostPrevalentColors[2]
-            );
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
+            url = new URL(imageUrl);
+            return ImageIO.read(
+                new BufferedInputStream(url.openStream()));
+        } catch (IllegalArgumentException | IOException e) {
+            throw new IllegalThreadStateException("Had a problem downloading url: " + imageUrl);
         }
-        throw new RuntimeException("Not supposed to happen");
     }
 
-    private HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
+    HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
+        if (image == null) {
+            throw new IllegalThreadStateException("got a null image from url:" + imageUrl);
+
+        }
 
         final HashMap<String, Integer> occurrences = new HashMap<>();
         for (int x = 0; x < image.getWidth(); x++) {
