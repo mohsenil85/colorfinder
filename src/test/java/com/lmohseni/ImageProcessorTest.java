@@ -3,9 +3,9 @@ package com.lmohseni;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
@@ -17,7 +17,15 @@ public class ImageProcessorTest {
 
     @Before
     public void setUp() throws Exception {
-        imageProcessor = new ImageProcessor(localTestFilePath);
+        imageProcessor = new ImageProcessor(
+            16,
+            20,
+            TimeUnit.SECONDS,
+            100,
+            1,
+            localTestFilePath
+        );
+        imageProcessor.init();
     }
 
     @Test

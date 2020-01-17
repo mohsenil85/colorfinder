@@ -20,23 +20,23 @@ import java.util.stream.Stream;
 public class ImageProcessor {
 
     //tunables:
+    private final int nThreads;
+    private final int timeout;
     @NonNull
-    private final int nThreads = 16;
-    @NonNull
-    private final int timeout = 100;
-    @NonNull
-    private final int initialCapacity = 100;
-    @NonNull
-    private final int loadFactor = 100;
+    private final TimeUnit timeUnit;
+    private final int initialCapacity;
+    private final int loadFactor;
     @NonNull
     private final String imageListUrl;
 
-    private final
-    ThreadPoolExecutor executor =
-        (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
+    private ThreadPoolExecutor executor;
+    private ConcurrentHashMap<String, String[]> resultsMap;
 
-    private final ConcurrentHashMap<String, String[]> resultsMap =
-        new ConcurrentHashMap<>(initialCapacity, loadFactor, nThreads);
+    public void init(){
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
+        resultsMap = new ConcurrentHashMap<>(initialCapacity, loadFactor, nThreads);
+    }
+
 
     public ConcurrentHashMap<String, String[]> processAllImages() throws IOException {
         Set<String> urls;
@@ -59,13 +59,12 @@ public class ImageProcessor {
 
         executor.shutdown();
         try {
-            final boolean b = executor.awaitTermination(timeout, TimeUnit.SECONDS);
+            final boolean b = executor.awaitTermination(timeout, timeUnit);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         return resultsMap;
-
 
     }
 
