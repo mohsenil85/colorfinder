@@ -19,6 +19,7 @@ public class ProcessingTask implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("my image url is: " + imageUrl );
 
     }
 

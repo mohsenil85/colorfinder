@@ -12,10 +12,6 @@ import static org.junit.Assert.assertEquals;
 
 public class ProcessingTaskTest {
 
-    @Test
-    public void run() {
-    }
-
     ProcessingTask task = new ProcessingTask("http://i.imgur.com/TKLs9lo.jpg");
 
     final File referenceImage = new File("src/test/resources/test-image.jpg");
@@ -32,6 +28,11 @@ public class ProcessingTaskTest {
     }
 
     @Test
+    public void run() {
+        task.run();
+    }
+
+    @Test
     public void downloadImage() throws IOException {
         final BufferedImage actual = task
             .downloadImage();
@@ -44,7 +45,6 @@ public class ProcessingTaskTest {
     public void retrieveReferenceImage() throws IOException {
         final BufferedImage image = task.downloadImage();
         ImageIO.write(image, "JPEG", referenceImage);
-
     }
 
     @Test
