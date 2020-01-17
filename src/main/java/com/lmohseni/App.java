@@ -14,81 +14,11 @@ import java.util.Map;
 
 public class App {
 
+    private static final String defaultInputUrl = "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
+
     public static void main(String[] args) {
         System.out.println("Hello World!");
     }
 
-    BufferedImage downloadImage(String url) throws IOException {
-        return ImageIO.read(
-            new BufferedInputStream(
-                new URL(url).openStream()));
-    }
-
-    ColorProcessingResult processImage(String url) {
-        try {
-            final BufferedImage image = downloadImage(url);
-            final HashMap<String, Integer> occurrences = getColorOccurrences(image);
-            final String[] mostPrevalentColors = determineMostPrevalentColors(occurrences);
-
-            return new ColorProcessingResult(
-                url,
-                mostPrevalentColors[0],
-                mostPrevalentColors[1],
-                mostPrevalentColors[2]
-            );
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        throw new RuntimeException("Not supposed to happen");
-    }
-
-    private HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
-
-        final HashMap<String, Integer> occurrences = new HashMap<>();
-        for (int x = 0; x < image.getWidth(); x++) {
-            for (int y = 0; y < image.getHeight(); y++) {
-                final String rgb = convertToRgbHex(image.getRGB(x, y));
-                if (occurrences.get(rgb) == null) {
-                    occurrences.put(rgb, 1);
-                } else {
-                    occurrences.put(rgb, occurrences.get(rgb) + 1);
-                }
-            }
-        }
-        return occurrences;
-    }
-
-    private String[] determineMostPrevalentColors(HashMap<String, Integer> map) {
-
-        Map.Entry<String, Integer> color1 = new AbstractMap.SimpleEntry<>("", 0);
-        Map.Entry<String, Integer> color2 = new AbstractMap.SimpleEntry<>("", 0);
-        Map.Entry<String, Integer> color3 = new AbstractMap.SimpleEntry<>("", 0);
-
-        for (Map.Entry<String, Integer> entry : map.entrySet()) {
-            if (entry.getValue() > color1.getValue()) {
-                color3 = color2;  //propagate runners up, order matters
-                color2 = color1;
-                color1 = entry;
-            }
-        }
-        return new String[]{color1.getKey(), color2.getKey(), color3.getKey()};
-
-    }
-
-    private String convertToRgbHex(int rgbInt) {
-        return Integer.toHexString(rgbInt)
-            .substring(0, 6); //ignore alpha channel if it exists
-    }
-
-    @Data
-    class ColorProcessingResult {
-
-        private final String imageUrl;
-        private final String color1;
-        private final String color2;
-        private final String color3;
-    }
 
 }
