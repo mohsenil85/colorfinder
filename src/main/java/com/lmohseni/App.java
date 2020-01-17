@@ -28,13 +28,13 @@ public class App {
         try {
             final BufferedImage image = downloadImage(url);
             final HashMap<String, Integer> occurrences = getColorOccurrences(image);
-            final String[] mostPrevelantColors = determineMostPrevelantColors(occurrences);
+            final String[] mostPrevalentColors = determineMostPrevalentColors(occurrences);
 
             return new ColorProcessingResult(
                 url,
-                mostPrevelantColors[0],
-                mostPrevelantColors[1],
-                mostPrevelantColors[2]
+                mostPrevalentColors[0],
+                mostPrevalentColors[1],
+                mostPrevalentColors[2]
             );
 
 
@@ -53,15 +53,14 @@ public class App {
                 if (occurrences.get(rgb) == null) {
                     occurrences.put(rgb, 1);
                 } else {
-                    int existing = occurrences.get(rgb);
-                    occurrences.put(rgb, existing + 1);
+                    occurrences.put(rgb, occurrences.get(rgb) + 1);
                 }
             }
         }
         return occurrences;
     }
 
-    private String[] determineMostPrevelantColors(HashMap<String, Integer> map){
+    private String[] determineMostPrevalentColors(HashMap<String, Integer> map) {
 
         Map.Entry<String, Integer> color1 = new AbstractMap.SimpleEntry<>("", 0);
         Map.Entry<String, Integer> color2 = new AbstractMap.SimpleEntry<>("", 0);

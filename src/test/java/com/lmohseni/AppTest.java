@@ -67,10 +67,10 @@ public class AppTest {
     public void processImage() {
         final App.ColorProcessingResult result = app.processImage(referenceImageUrl);
 
-        assertEquals(referenceImageUrl,result.getImageUrl());
-        assertEquals("ffffff",result.getColor1());
-        assertEquals("fffefe",result.getColor2());
-        assertEquals("fff7f7",result.getColor3());
+        assertEquals(referenceImageUrl, result.getImageUrl());
+        assertEquals("ffffff", result.getColor1());
+        assertEquals("fffefe", result.getColor2());
+        assertEquals("fff7f7", result.getColor3());
     }
 
 }
