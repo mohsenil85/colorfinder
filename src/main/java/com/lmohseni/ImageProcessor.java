@@ -38,8 +38,8 @@ public class ImageProcessor {
     private HashMap<Integer, String[]> resultsMap;
 
     public void init() {
-        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        //executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
+//        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
         resultsMap = new HashMap<Integer, String[]>();
         completionService = new ExecutorCompletionService<String[]>(executor);
     }

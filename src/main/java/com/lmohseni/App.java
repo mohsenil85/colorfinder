@@ -23,7 +23,7 @@ public class App {
         imageProcessor.init();
         final HashMap<Integer, String[]> results = imageProcessor.processAllImages();
         final int status = imageProcessor.writeOutputFile(results);
-        System.exit(status);
+        System.out.println("exited with status:" + status);
     }
 
 
