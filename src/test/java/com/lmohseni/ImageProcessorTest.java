@@ -24,11 +24,11 @@ public class ImageProcessorTest {
     @Before
     public void setUp() {
         imageProcessor = new ImageProcessor(
-            20,
+            200,
             10,
             100,
             .9f,
-            20,
+            200,
             TimeUnit.SECONDS,
             localTestFilePath,
             localTestOutputFile
@@ -40,7 +40,7 @@ public class ImageProcessorTest {
     public void processAllImages() throws IOException {
         Instant start = Instant.now();
 
-        final ConcurrentHashMap<Integer, String[]> map = imageProcessor
+        final ConcurrentHashMap<String, String[]> map = imageProcessor
             .processAllImages();
         assertEquals(33, map.size());
 
@@ -51,14 +51,14 @@ public class ImageProcessorTest {
 
     @Test
     public void writeOutputFile() throws IOException {
-        final ConcurrentHashMap<Integer, String[]> map = new ConcurrentHashMap<>();
-        map.put(1,
+        final ConcurrentHashMap<String, String[]> map = new ConcurrentHashMap<>();
+        map.put("foo",
             new String[]{
                 "http://i.imgur.com/FApqk3D.jpg"
                 ,"ffffff","ffe000","fffeff",
             }
         );
-        map.put(2,
+        map.put("bar",
             new String[]{
                 "http://i.imgur.com/FApqk3D.jpg"
                 ,"ffffff","ffe000","fffeff",
@@ -74,7 +74,7 @@ public class ImageProcessorTest {
     public void imageProcessorE2E() throws IOException {
         Instant start = Instant.now();
 
-        final ConcurrentHashMap<Integer, String[]> map = imageProcessor
+        final ConcurrentHashMap<String, String[]> map = imageProcessor
             .processAllImages();
         final int status = imageProcessor
             .writeOutputFile(map);

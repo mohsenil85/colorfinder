@@ -38,24 +38,28 @@ public class ImageProcessor {
 
     private ThreadPoolExecutor executor;
     private CompletionService<String[]> completionService;
-    private ConcurrentHashMap<Integer, String[]> resultsMap;
+    private ConcurrentHashMap<String, String[]> resultsMap;
 
     public void init() {
 //        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
-        resultsMap = new ConcurrentHashMap<Integer, String[]>(initialCapacity, loadFactor,
+        resultsMap = new ConcurrentHashMap<String, String[]>(initialCapacity, loadFactor,
             concurrencyLevel);
         completionService = new ExecutorCompletionService<String[]>(executor);
     }
 
-    public ConcurrentHashMap<Integer, String[]> processAllImages() throws IOException {
+    public ConcurrentHashMap<String, String[]> processAllImages() throws IOException {
         try (BufferedReader read = new BufferedReader(
             new InputStreamReader(new URL(imageListUrl).openStream()))) {
 
-            try (Stream<String> lines = read.lines()) {
-                lines.forEach(url ->
-                    completionService.submit(new ProcessingTask(url))
-                );
+            synchronized (read) {
+                try (Stream<String> lines = read.lines()) {
+
+                    lines.forEach(url ->
+                        completionService.submit(new ProcessingTask(url))
+                    );
+                }
+
             }
         }
 
@@ -67,7 +71,7 @@ public class ImageProcessor {
                     break;
                 }
                 final String[] strings = take.get();
-                resultsMap.put(idx, strings);
+                resultsMap.putIfAbsent(strings[0], strings);
                 idx++;
                 System.out.println(idx);
             } catch (InterruptedException | ExecutionException e) {
@@ -80,7 +84,7 @@ public class ImageProcessor {
         return resultsMap;
     }
 
-    public int writeOutputFile(ConcurrentHashMap<Integer, String[]> results) {
+    public int writeOutputFile(ConcurrentHashMap<String, String[]> results) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
 

@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -30,12 +29,12 @@ public class App {
         );
 
         imageProcessor.init();
-        final ConcurrentHashMap<Integer, String[]> results = imageProcessor.processAllImages();
+        final ConcurrentHashMap<String, String[]> results = imageProcessor.processAllImages();
         final int status = imageProcessor.writeOutputFile(results);
 
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).getSeconds();
-        System.out.println("took " + timeElapsed);
+        System.out.println("total time:  " + timeElapsed);
 
         System.out.println("exited with status:" + status);
     }
