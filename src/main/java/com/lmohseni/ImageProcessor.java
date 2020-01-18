@@ -4,6 +4,9 @@ import lombok.Data;
 import lombok.NonNull;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -27,13 +30,16 @@ public class ImageProcessor {
     private final TimeUnit timeUnit;
     @NonNull
     private final String imageListUrl;
+    @NonNull
+    private final File outputFile;
 
     private ThreadPoolExecutor executor;
-    private HashMap<Integer, String[]> resultsMap;
     private CompletionService<String[]> completionService;
+    private HashMap<Integer, String[]> resultsMap;
 
     public void init() {
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
+        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        //executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
         resultsMap = new HashMap<Integer, String[]>();
         completionService = new ExecutorCompletionService<String[]>(executor);
     }
@@ -67,7 +73,26 @@ public class ImageProcessor {
         executor.shutdownNow();
 
         return resultsMap;
-
     }
+
+    public int writeOutputFile(HashMap<Integer, String[]> results) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+
+            for (String[] array : results.values()) {
+                for (String str : array) {
+                    writer.write(str);
+                    writer.write(",");
+                }
+                writer.newLine();
+            }
+            writer.close();
+            return 0;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
 
 }
