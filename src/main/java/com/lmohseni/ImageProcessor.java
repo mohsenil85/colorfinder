@@ -10,8 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
@@ -26,6 +26,9 @@ public class ImageProcessor {
     //tunables:
     private final int nThreads;
     private final int timeout;
+    private final int initialCapacity;
+    private final float loadFactor;
+    private final int concurrencyLevel;
     @NonNull
     private final TimeUnit timeUnit;
     @NonNull
@@ -35,16 +38,17 @@ public class ImageProcessor {
 
     private ThreadPoolExecutor executor;
     private CompletionService<String[]> completionService;
-    private HashMap<Integer, String[]> resultsMap;
+    private ConcurrentHashMap<Integer, String[]> resultsMap;
 
     public void init() {
 //        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
-        resultsMap = new HashMap<Integer, String[]>();
+        resultsMap = new ConcurrentHashMap<Integer, String[]>(initialCapacity, loadFactor,
+            concurrencyLevel);
         completionService = new ExecutorCompletionService<String[]>(executor);
     }
 
-    public HashMap<Integer, String[]> processAllImages() throws IOException {
+    public ConcurrentHashMap<Integer, String[]> processAllImages() throws IOException {
         try (BufferedReader read = new BufferedReader(
             new InputStreamReader(new URL(imageListUrl).openStream()))) {
 
@@ -65,6 +69,7 @@ public class ImageProcessor {
                 final String[] strings = take.get();
                 resultsMap.put(idx, strings);
                 idx++;
+                System.out.println(idx);
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
@@ -75,7 +80,7 @@ public class ImageProcessor {
         return resultsMap;
     }
 
-    public int writeOutputFile(HashMap<Integer, String[]> results) {
+    public int writeOutputFile(ConcurrentHashMap<Integer, String[]> results) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
 

@@ -8,7 +8,10 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -19,12 +22,20 @@ public class ProcessingTask implements Callable<String[]> {
     @NonNull
     private final String imageUrl;
 
+    private  final String troublesomeUlr = "https://i.redd.it/nrafqoujmety.jpg";
 
     @Override
     public String[] call() {
+        Instant start = Instant.now();
+
+//        if (imageUrl.equals(troublesomeUlr)) return null;
         final BufferedImage image = downloadImage();
         final HashMap<String, Integer> occurrences = getColorOccurrences(image);
         final String[] strings = determineMostPrevalentColors(occurrences);
+        System.out.println(Arrays.toString(strings));
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).getSeconds();
+        System.out.println("took " + timeElapsed);
         return strings;
     }
 
@@ -36,7 +47,7 @@ public class ProcessingTask implements Callable<String[]> {
             return ImageIO.read(
                 new BufferedInputStream(url.openStream()));
         } catch (IllegalArgumentException | IOException e) {
-            throw new IllegalThreadStateException("Had a problem downloading url: " + imageUrl);
+            return null;
         }
     }
 

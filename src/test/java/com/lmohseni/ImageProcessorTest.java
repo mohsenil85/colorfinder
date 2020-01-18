@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -25,6 +26,9 @@ public class ImageProcessorTest {
         imageProcessor = new ImageProcessor(
             20,
             10,
+            100,
+            .9f,
+            20,
             TimeUnit.SECONDS,
             localTestFilePath,
             localTestOutputFile
@@ -36,7 +40,7 @@ public class ImageProcessorTest {
     public void processAllImages() throws IOException {
         Instant start = Instant.now();
 
-        final HashMap<Integer, String[]> map = imageProcessor
+        final ConcurrentHashMap<Integer, String[]> map = imageProcessor
             .processAllImages();
         assertEquals(33, map.size());
 
@@ -47,7 +51,7 @@ public class ImageProcessorTest {
 
     @Test
     public void writeOutputFile() throws IOException {
-        final HashMap<Integer, String[]> map = new HashMap<>();
+        final ConcurrentHashMap<Integer, String[]> map = new ConcurrentHashMap<>();
         map.put(1,
             new String[]{
                 "http://i.imgur.com/FApqk3D.jpg"
@@ -68,10 +72,15 @@ public class ImageProcessorTest {
     @Ignore("Test is ignored as a demonstration")
     @Test
     public void imageProcessorE2E() throws IOException {
-        final HashMap<Integer, String[]> map = imageProcessor
+        Instant start = Instant.now();
+
+        final ConcurrentHashMap<Integer, String[]> map = imageProcessor
             .processAllImages();
         final int status = imageProcessor
             .writeOutputFile(map);
+        Instant finish = Instant.now();
+        long timeElapsed = Duration.between(start, finish).getSeconds();
+        System.out.println("took " + timeElapsed);
 
         assertEquals(0, status);
 
