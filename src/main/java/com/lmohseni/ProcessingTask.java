@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -22,21 +23,29 @@ public class ProcessingTask implements Callable<String[]> {
     @NonNull
     private final String imageUrl;
 
-    private  final String troublesomeUlr = "https://i.redd.it/nrafqoujmety.jpg";
+    @NonNull
+    private final float compressionPercentage;
+
+    private final String troublesomeUlr = "https://i.redd.it/nrafqoujmety.jpg";
 
     @Override
     public String[] call() {
         Instant start = Instant.now();
 
-//        if (imageUrl.equals(troublesomeUlr)) return null;
+        if (imageUrl.equals(troublesomeUlr)) return null;
         final BufferedImage image = downloadImage();
-        final HashMap<String, Integer> occurrences = getColorOccurrences(image);
-        final String[] strings = determineMostPrevalentColors(occurrences);
-        System.out.println(Arrays.toString(strings));
-        Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).getSeconds();
-        System.out.println("took " + timeElapsed);
-        return strings;
+        if (image != null) {
+            final BufferedImage scaled = resizeImage(image, compressionPercentage);
+            final HashMap<String, Integer> occurrences = getColorOccurrences(scaled);
+            final String[] strings = determineMostPrevalentColors(occurrences);
+            System.out.println(Arrays.toString(strings));
+            Instant finish = Instant.now();
+            long timeElapsed = Duration.between(start, finish).getSeconds();
+            System.out
+                .println(Thread.currentThread().getName() + " took " + timeElapsed + " seconds.");
+            return strings;
+        }
+        return null;
     }
 
 
@@ -44,11 +53,15 @@ public class ProcessingTask implements Callable<String[]> {
         final URL url;
         try {
             url = new URL(imageUrl);
-            return ImageIO.read(
-                new BufferedInputStream(url.openStream()));
+            if (url != null) {
+                return ImageIO.read(
+                    new BufferedInputStream(url.openStream()));
+
+            }
         } catch (IllegalArgumentException | IOException e) {
-            return null;
+            throw new IllegalThreadStateException("Problem downloading image from: " + imageUrl);
         }
+        return null;
     }
 
     HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
@@ -64,6 +77,23 @@ public class ProcessingTask implements Callable<String[]> {
             }
         }
         return occurrences;
+    }
+
+    BufferedImage resizeImage(BufferedImage inputImage, float percent) {
+        if (inputImage != null) {
+            int scaledWidth = (int) (inputImage.getWidth() * percent);
+            int scaledHeight = (int) (inputImage.getHeight() * percent);
+
+            BufferedImage outputImage = new BufferedImage(scaledWidth,
+                scaledHeight, inputImage.getType());
+
+            Graphics2D g2d = outputImage.createGraphics();
+            g2d.drawImage(inputImage, 0, 0, scaledWidth, scaledHeight, null);
+            g2d.dispose();
+
+            return outputImage;
+        }
+        return null;
     }
 
     private String[] determineMostPrevalentColors(HashMap<String, Integer> map) {
@@ -83,8 +113,10 @@ public class ProcessingTask implements Callable<String[]> {
     }
 
     private String convertToRgbHex(int rgbInt) {
-        return Integer.toHexString(rgbInt)
+        String result = Integer.toHexString(rgbInt)
+            .toUpperCase()
             .substring(0, 6); //ignore alpha channel if it exists
+        return "#" + result;
     }
 
 

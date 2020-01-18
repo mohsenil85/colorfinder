@@ -10,97 +10,93 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 @Data
 public class ImageProcessor {
 
     //tunables:
-    private final int nThreads;
     private final int timeout;
-    private final int initialCapacity;
-    private final float loadFactor;
-    private final int concurrencyLevel;
     @NonNull
     private final TimeUnit timeUnit;
     @NonNull
     private final String imageListUrl;
     @NonNull
     private final File outputFile;
+    @NonNull
+    private final CompletionService<String[]> completionService;
+    private final float compressionPercentage;
 
-    private ThreadPoolExecutor executor;
-    private CompletionService<String[]> completionService;
-    private ConcurrentHashMap<String, String[]> resultsMap;
+    public void processAllImages() {
+        Instant start = Instant.now();
 
-    public void init() {
-//        executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads);
-        resultsMap = new ConcurrentHashMap<String, String[]>(initialCapacity, loadFactor,
-            concurrencyLevel);
-        completionService = new ExecutorCompletionService<String[]>(executor);
-    }
-
-    public ConcurrentHashMap<String, String[]> processAllImages() throws IOException {
-        try (BufferedReader read = new BufferedReader(
-            new InputStreamReader(new URL(imageListUrl).openStream()))) {
-
-            synchronized (read) {
-                try (Stream<String> lines = read.lines()) {
-
-                    lines.forEach(url ->
-                        completionService.submit(new ProcessingTask(url))
-                    );
-                }
-
-            }
-        }
-
-        int idx = 0;
-        while (true) {
-            try {
-                final Future<String[]> take = completionService.poll(timeout, timeUnit);
-                if (take == null) {
-                    break;
-                }
-                final String[] strings = take.get();
-                resultsMap.putIfAbsent(strings[0], strings);
-                idx++;
-                System.out.println(idx);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        executor.shutdownNow();
-
-        return resultsMap;
-    }
-
-    public int writeOutputFile(ConcurrentHashMap<String, String[]> results) {
+        final URL imagesUrl;
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-
-            for (String[] array : results.values()) {
-                for (String str : array) {
-                    writer.write(str);
-                    writer.write(",");
-                }
-                writer.newLine();
-            }
-            writer.close();
-            return 0;
+            imagesUrl = new URL(imageListUrl);
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(imagesUrl.openStream()));
+            reader
+                .lines()
+                .forEach(url -> {
+                        System.out.println("creating thread for url: " + url);
+                        completionService.submit(new ProcessingTask(url, compressionPercentage));
+                    }
+                );
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return 1;
+
+        final BufferedWriter writer;
+        try {
+            writer = new BufferedWriter(
+                new FileWriter(outputFile));
+            int idx = 0;
+            while (true) {
+                try {
+                    final Future<String[]> take = completionService.poll(timeout, timeUnit);
+                    if (take == null) {
+                        break;
+                    }
+                    final String[] strings = take.get();
+                    if (strings != null) {
+                        for (String str : strings) {
+                            writer.write(str);
+                            writer.write(",");
+                        }
+                        writer.newLine();
+
+                        idx++;
+                        System.out.println(idx);
+
+                    }
+
+                } catch (InterruptedException | ExecutionException | NullPointerException | IOException e) {
+                    System.out.println(e.getMessage());
+
+                }
+
+                writer.flush();
+
+
+                System.out.println("total records processed:  " + idx);
+                Instant finish = Instant.now();
+                long timeElapsed = Duration.between(start, finish).getSeconds();
+                System.out.println("elapsed time:  " + timeElapsed);
+            }
+            Instant finish = Instant.now();
+            long timeElapsed = Duration.between(start, finish).getSeconds();
+            System.out.println("total time:  " + timeElapsed);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 

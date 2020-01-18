@@ -3,86 +3,65 @@ package com.lmohseni;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
 
 public class ImageProcessorTest {
 
+    ImageProcessor imageProcessor;
+
+    @Mock
+    private ConcurrentHashMap<String, String[]> resultsMap;
+    @Mock
+    private CompletionService<String[]> completionService;
     final String localTestFilePath = "file:./src/test/resources/test-list.txt";
     final File localTestOutputFile = new File("./src/test/resources/test-results.csv");
 
-    ImageProcessor imageProcessor;
 
     @Before
     public void setUp() {
+
+        MockitoAnnotations.initMocks(this);
+
         imageProcessor = new ImageProcessor(
-            200,
-            10,
-            100,
-            .9f,
-            200,
+            5,
             TimeUnit.SECONDS,
             localTestFilePath,
-            localTestOutputFile
+            localTestOutputFile,
+            completionService,
+            .5f
         );
-        imageProcessor.init();
     }
 
     @Test
-    public void processAllImages() throws IOException {
+    public void processAllImages() throws IOException, ExecutionException, InterruptedException {
+
+        imageProcessor
+            .processAllImages();
+
+    }
+
+    @Test
+    @Ignore("Used for benchmarking")
+    public void imageProcessorE2E() throws IOException, ExecutionException, InterruptedException {
         Instant start = Instant.now();
 
-        final ConcurrentHashMap<String, String[]> map = imageProcessor
-            .processAllImages();
-        assertEquals(33, map.size());
+        imageProcessor.processAllImages();
 
         Instant finish = Instant.now();
         long timeElapsed = Duration.between(start, finish).getSeconds();
-        System.out.println("took " + timeElapsed);
-    }
+        System.out.println("elapsed time: " + timeElapsed);
 
-    @Test
-    public void writeOutputFile() throws IOException {
-        final ConcurrentHashMap<String, String[]> map = new ConcurrentHashMap<>();
-        map.put("foo",
-            new String[]{
-                "http://i.imgur.com/FApqk3D.jpg"
-                ,"ffffff","ffe000","fffeff",
-            }
-        );
-        map.put("bar",
-            new String[]{
-                "http://i.imgur.com/FApqk3D.jpg"
-                ,"ffffff","ffe000","fffeff",
-            }
-        );
-        final int status = imageProcessor
-            .writeOutputFile(map);
-        assertEquals(0, status);
-    }
-
-    @Ignore("Test is ignored as a demonstration")
-    @Test
-    public void imageProcessorE2E() throws IOException {
-        Instant start = Instant.now();
-
-        final ConcurrentHashMap<String, String[]> map = imageProcessor
-            .processAllImages();
-        final int status = imageProcessor
-            .writeOutputFile(map);
-        Instant finish = Instant.now();
-        long timeElapsed = Duration.between(start, finish).getSeconds();
-        System.out.println("took " + timeElapsed);
-
-        assertEquals(0, status);
 
     }
 }

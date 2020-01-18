@@ -2,32 +2,33 @@ package com.lmohseni;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class ProcessingTaskTest {
 
-    @Mock
-    ConcurrentHashMap<String, String[]> map;
-
     final String imageUrl = "http://i.imgur.com/TKLs9lo.jpg";
     ProcessingTask task;
 
-    final File referenceImage = new File("src/test/resources/test-image.jpg");
+    File referenceImage;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl);
+        task = new ProcessingTask(imageUrl, .5f);
+
+        referenceImage = new File(
+            Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
+                .getFile()
+        );
 
         if (!referenceImage.exists()) {
             try {
@@ -40,7 +41,12 @@ public class ProcessingTaskTest {
 
     @Test
     public void call() {
-        final String[] expected = {"http://i.imgur.com/TKLs9lo.jpg", "ffffff", "fffefe", "fff7f7"};
+        final String[] expected = {
+            "http://i.imgur.com/TKLs9lo.jpg",
+            "#FFFFFF",
+            "#FFF5F5",
+            "#FF9A9A"
+        };
         final String[] actual = task.call();
         assertArrayEquals(expected, actual);
     }
@@ -57,18 +63,18 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null);
+        new ProcessingTask(null,.5f);
     }
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl");
+        final ProcessingTask task = new ProcessingTask("invalidUrl",.5f);
         task.downloadImage();
     }
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageNotAJpg() {
-        final ProcessingTask task = new ProcessingTask("http://google.com");
+        final ProcessingTask task = new ProcessingTask("http://google.com", .5f);
         task.getColorOccurrences(null);
     }
 
