@@ -17,14 +17,14 @@ public class App {
 
         int nThreads = 200;
         int timeout = 10;
-        float compressionPercentage = .1f;
+        float compressionPercentage = .4f;
         final ExecutorService executor = Executors
 //            .newCachedThreadPool();
 //            .newFixedThreadPool(nThreads);
 //        .newSingleThreadExecutor();
-//            .newWorkStealingPool(300);
+            .newWorkStealingPool(nThreads);
 
-        .newScheduledThreadPool(200);
+//        .newScheduledThreadPool(400);
 
         final ExecutorCompletionService<String[]> completionService = new ExecutorCompletionService<>(
             executor);
