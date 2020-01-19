@@ -13,7 +13,8 @@ Notes
 1. project generated with
 `mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
 
-1. run with `mvn clean package; java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App`
+1. build with `mvn clean package`
+1. run with `java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App -Xms2G -Xmx8G`
 
 Overall plan of attack
 ----------------------

@@ -14,11 +14,10 @@ public class App {
         ImageProcessor imageProcessor;
         File outputFile = new File("./target/results.csv");
 
-        int nThreads = 200;
         int timeout = 10;
         float compressionPercentage = .9f;
         final ExecutorService executor = Executors
-            .newWorkStealingPool(nThreads);
+            .newWorkStealingPool();
 
         final ExecutorCompletionService<String[]> completionService = new ExecutorCompletionService<>(
             executor);
