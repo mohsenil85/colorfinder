@@ -25,7 +25,6 @@ public class ImageProcessorTest {
             .verbose(true)
             .compressionPercentage(.5f)
             .timeout(5)
-            .timeUnit(TimeUnit.SECONDS)
             .imageListUrl("file:./src/test/resources/test-list.txt")
             .outputFilePath("./src/test/resources/test-results.csv")
             .executorService(executorService)

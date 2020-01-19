@@ -29,8 +29,6 @@ public class ImageProcessor {
     private final float compressionPercentage;
     private final int timeout;
     @NonNull
-    private final TimeUnit timeUnit;
-    @NonNull
     private final String imageListUrl;
     @NonNull
     private final String outputFilePath;
@@ -76,7 +74,7 @@ public class ImageProcessor {
             try {
                 final BufferedWriter writer = new BufferedWriter(
                     new FileWriter(new File(outputFilePath)));
-                final Future<String[]> take = completionService.poll(timeout, timeUnit);
+                final Future<String[]> take = completionService.poll(timeout, TimeUnit.SECONDS);
                 if (take == null) {
                     if (verbose) {
                         System.out.printf("maximum idle seconds reached: %d\n", timeout);
