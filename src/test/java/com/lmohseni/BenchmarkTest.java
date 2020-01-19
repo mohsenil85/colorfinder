@@ -67,7 +67,6 @@ public class BenchmarkTest {
         Assert.assertArrayEquals(expected, actual);
     }
 
-
     @Benchmark
     @Test
     public void testProcessingTask10() {
@@ -111,7 +110,6 @@ public class BenchmarkTest {
 
         Assert.assertArrayEquals(expected, actual);
     }
-
 
     @Benchmark
     @Test
