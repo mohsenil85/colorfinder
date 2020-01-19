@@ -16,14 +16,12 @@ Notes
 1. build with `mvn clean package`
 1. run with `java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App -Xms2G -Xmx8G`
 
-Overall plan of attack
+How it works
 ----------------------
 
-1.  Use a thread pool.  Each thread will:
-1.  Accept as input an image url
-1.  Download the image (to InputStream?)
-1.  Compress the image (quality as a config param)
-1.  Find the 3 color averages
-1.  write the result to something that handles many writes
-1.  end thread
-1.  ConcurrentHashMap? -> csv
+
+Next Steps
+----
+
+1. logging
+1. consume argv
