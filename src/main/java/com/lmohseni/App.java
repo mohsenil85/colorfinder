@@ -9,7 +9,7 @@ public class App {
     public static void main(String[] args) {
         ImageProcessor.builder()
             .verbose(true)
-            .compressionPercentage(.1f)
+            .compressionPercentage(.01f)
             .timeout(10)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(
@@ -20,5 +20,4 @@ public class App {
 
             .processAllImages();
     }
-
 }

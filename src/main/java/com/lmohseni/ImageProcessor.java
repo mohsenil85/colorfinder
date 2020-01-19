@@ -59,73 +59,62 @@ public class ImageProcessor {
                         completionService
                             .submit(
                                 ProcessingTask.builder()
-                                .imageUrl(url)
-                                .compressionPercentage(compressionPercentage)
-                                .verbose(verbose)
-                                .build()
+                                    .imageUrl(url)
+                                    .compressionPercentage(compressionPercentage)
+                                    .verbose(verbose)
+                                    .build()
                             );
                     }
                 );
+            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        final BufferedWriter writer;
-        try {
-            writer = new BufferedWriter(
-                new FileWriter(new File(outputFilePath)));
-            int idx = 0;
-            while (true) {
-                try {
-                    final Future<String[]> take = completionService.poll(timeout, timeUnit);
-                    if (take == null) {
-                        break;
+        int idx = 0;
+        while (true) {
+            try {
+                final BufferedWriter writer = new BufferedWriter(
+                    new FileWriter(new File(outputFilePath)));
+                final Future<String[]> take = completionService.poll(timeout, timeUnit);
+                if (take == null) {
+                    if (verbose) {
+                        System.out.printf("maximum idle seconds reached: %d\n", timeout);
                     }
-                    final String[] strings = take.get();
-                    if (strings != null) {
-                        for (String str : strings) {
-                            writer.write(str);
-                            writer.write(",");
-                        }
-                        writer.newLine();
-                        writer.flush();
-
-                        idx++;
-                        if (verbose) {
-                            System.out.println(idx);
-                        }
-
+                    writer.close();
+                    executorService.shutdownNow();
+                    break;
+                }
+                final String[] strings = take.get();
+                if (strings != null) {
+                    for (String str : strings) {
+                        writer.write(str);
+                        writer.write(",");
                     }
+                    writer.newLine();
+                    writer.flush();
 
-                } catch (InterruptedException | ExecutionException | NullPointerException | IOException e) {
-                    System.out.println(e.getMessage());
+                    idx++;
+                    if (verbose) {
+                        System.out.printf("total records processed: %d\n", idx);
+                        Instant finish = Instant.now();
+                        long timeElapsed = Duration.between(start, finish).getSeconds();
+                        System.out.printf("elapsed time: %d\n", timeElapsed);
+                    }
 
                 }
 
-                if (verbose) {
-                    System.out.println("total records processed:  " + idx);
-                    Instant finish = Instant.now();
-                    long timeElapsed = Duration.between(start, finish).getSeconds();
-                    System.out.println("elapsed time:  " + timeElapsed);
+            } catch (InterruptedException | ExecutionException | NullPointerException | IOException e) {
+                System.out.println(e.getMessage());
 
-                }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
         if (verbose) {
             Instant finish = Instant.now();
             long timeElapsed = Duration.between(start, finish).getSeconds();
             System.out.println("total time:  " + timeElapsed);
 
-        }
-
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(2, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
 
     }
