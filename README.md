@@ -25,3 +25,4 @@ Next Steps
 
 1. logging
 1. consume argv
+1. create a mvn profile for the jmh runner

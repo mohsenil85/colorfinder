@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.All)
 @Warmup(iterations = 2)
 @Measurement(iterations = 10)
-public class BenchmarkSuite {
+@Ignore("Don't run in CI")
+public class BenchmarkTest {
 
     @State(org.openjdk.jmh.annotations.Scope.Thread)
     static class Scope {
@@ -37,6 +38,12 @@ public class BenchmarkSuite {
 
     }
 
+    static class BenchmarkRunner {
+
+        public static void main(String[] args) throws Exception {
+            org.openjdk.jmh.Main.main(args);
+        }
+    }
 
     @Benchmark
     @Test
@@ -172,7 +179,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorForkJoinRemote() {
         ImageProcessor.builder()
             .verbose(true)
@@ -189,7 +195,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorForkJoinRemote25() {
         ImageProcessor.builder()
             .verbose(true)
@@ -206,7 +211,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorForkJoinRemote200() {
         ImageProcessor.builder()
             .verbose(true)
@@ -223,7 +227,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorForkJoinRemote1000() {
         ImageProcessor.builder()
             .verbose(true)
@@ -240,7 +243,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorFixedRemote50() {
         ImageProcessor.builder()
             .verbose(Scope.verbose)
@@ -257,7 +259,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorFixedRemote200() {
         ImageProcessor.builder()
             .verbose(Scope.verbose)
@@ -274,7 +275,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorFixedRemote100() {
         ImageProcessor.builder()
             .verbose(Scope.verbose)
@@ -291,7 +291,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorCachedRemote() {
         ImageProcessor.builder()
             .verbose(true)
@@ -308,7 +307,6 @@ public class BenchmarkSuite {
 
     @Benchmark
     @Test
-    @Ignore("Don't run in CI")
     public void testImageProcessorSingleThreadedRemote() {
         ImageProcessor.builder()
             .verbose(true)
@@ -323,11 +321,6 @@ public class BenchmarkSuite {
             .processAllImages();
     }
 
-    static class BenchmarkRunner {
 
-        public static void main(String[] args) throws Exception {
-            org.openjdk.jmh.Main.main(args);
-        }
-    }
 }
 
