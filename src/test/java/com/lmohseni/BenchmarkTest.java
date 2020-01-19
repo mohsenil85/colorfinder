@@ -15,7 +15,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 1, jvmArgs = {"-Xms2G", "-Xmx8G"}, warmups = 2)
+@Fork(value = 2, jvmArgs = {"-Xms2G", "-Xmx8G"}, warmups = 2)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.All)
 @Warmup(iterations = 2)
@@ -30,7 +30,7 @@ public class BenchmarkTest {
         static String localUrl = "file:./src/test/resources/test-list.txt";
         static String github =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
-        static String testOuput = "./target/results.csv";
+        static String testOutput = "./target/results.csv";
         static boolean verbose = false;
         static float compression = .5f;
         static int timeout = 5;
@@ -122,7 +122,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.localUrl)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
 
@@ -138,7 +138,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.localUrl)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
 
@@ -154,7 +154,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.localUrl)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
 
@@ -170,7 +170,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.localUrl)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
 
@@ -186,7 +186,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
 
@@ -202,7 +202,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(25))
             .build()
 
@@ -218,7 +218,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(200))
             .build()
 
@@ -234,7 +234,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(1000))
             .build()
 
@@ -250,7 +250,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
 
@@ -266,7 +266,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(200))
             .build()
 
@@ -282,7 +282,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(1000))
             .build()
 
@@ -298,7 +298,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
 
@@ -314,7 +314,7 @@ public class BenchmarkTest {
             .timeout(Scope.timeout)
             .timeUnit(TimeUnit.SECONDS)
             .imageListUrl(Scope.github)
-            .outputFilePath(Scope.testOuput)
+            .outputFilePath(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
 

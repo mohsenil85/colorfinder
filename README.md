@@ -26,3 +26,5 @@ Next Steps
 1. logging
 1. consume argv
 1. create a mvn profile for the jmh runner
+1. create a blacklist of urls to block
+1. add statistics reporting
