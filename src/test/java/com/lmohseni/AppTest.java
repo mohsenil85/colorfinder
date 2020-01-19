@@ -12,6 +12,6 @@ public class AppTest {
 
     @Test
     public void main() throws IOException {
-        App.main(new String[]{"args"});
+//        App.main(new String[]{"args"});
     }
 }
