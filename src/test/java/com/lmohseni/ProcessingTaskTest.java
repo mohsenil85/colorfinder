@@ -23,7 +23,7 @@ public class ProcessingTaskTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl, .5f);
+        task = new ProcessingTask(imageUrl, .5f, true);
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -63,18 +63,18 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null,.5f);
+        new ProcessingTask(null,.5f, true);
     }
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl",.5f);
+        final ProcessingTask task = new ProcessingTask("invalidUrl",.5f, true);
         task.downloadImage();
     }
 
     @Test(expected = java.lang.IllegalThreadStateException.class)
     public void downloadImageNotAJpg() {
-        final ProcessingTask task = new ProcessingTask("http://google.com", .5f);
+        final ProcessingTask task = new ProcessingTask("http://google.com", .5f, true);
         task.getColorOccurrences(null);
     }
 

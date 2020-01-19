@@ -1,5 +1,6 @@
 package com.lmohseni;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 @Data
+@Builder
 public class ProcessingTask implements Callable<String[]> {
 
     @NonNull
@@ -26,23 +28,31 @@ public class ProcessingTask implements Callable<String[]> {
     @NonNull
     private final float compressionPercentage;
 
+    private final boolean verbose;
+
     private final String troublesomeUlr = "https://i.redd.it/nrafqoujmety.jpg";
 
     @Override
     public String[] call() {
         Instant start = Instant.now();
 
-        if (imageUrl.equals(troublesomeUlr)) return null;
+        if (imageUrl.equals(troublesomeUlr)) {
+            return null;
+        }
         final BufferedImage image = downloadImage();
         if (image != null) {
             final BufferedImage scaled = resizeImage(image, compressionPercentage);
             final HashMap<String, Integer> occurrences = getColorOccurrences(scaled);
             final String[] strings = determineMostPrevalentColors(occurrences);
-            System.out.println(Arrays.toString(strings));
-            Instant finish = Instant.now();
-            long timeElapsed = Duration.between(start, finish).getSeconds();
-            System.out
-                .println(Thread.currentThread().getName() + " took " + timeElapsed + " seconds.");
+            if (verbose) {
+                System.out.println(Arrays.toString(strings));
+            }
+            if (verbose) {
+                Instant finish = Instant.now();
+                long timeElapsed = Duration.between(start, finish).getSeconds();
+                System.out.println(
+                    Thread.currentThread().getName() + " took " + timeElapsed + " seconds.");
+            }
             return strings;
         }
         return null;
@@ -53,15 +63,12 @@ public class ProcessingTask implements Callable<String[]> {
         final URL url;
         try {
             url = new URL(imageUrl);
-            if (url != null) {
-                return ImageIO.read(
-                    new BufferedInputStream(url.openStream()));
+            return ImageIO.read(
+                new BufferedInputStream(url.openStream()));
 
-            }
         } catch (IllegalArgumentException | IOException e) {
             throw new IllegalThreadStateException("Problem downloading image from: " + imageUrl);
         }
-        return null;
     }
 
     HashMap<String, Integer> getColorOccurrences(BufferedImage image) {

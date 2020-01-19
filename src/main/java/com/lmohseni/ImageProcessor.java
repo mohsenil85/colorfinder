@@ -1,5 +1,6 @@
 package com.lmohseni;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -14,25 +15,34 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Data
+@Builder
 public class ImageProcessor {
 
     //tunables:
+    private final boolean verbose;
+    private final float compressionPercentage;
     private final int timeout;
     @NonNull
     private final TimeUnit timeUnit;
     @NonNull
     private final String imageListUrl;
     @NonNull
-    private final File outputFile;
+    private final String outputFilePath;
     @NonNull
-    private final CompletionService<String[]> completionService;
-    private final float compressionPercentage;
+    private final ExecutorService executorService;
 
     public void processAllImages() {
+
+        final CompletionService<String[]> completionService =
+            new ExecutorCompletionService<>(
+                executorService);
+
         Instant start = Instant.now();
 
         final URL imagesUrl;
@@ -43,8 +53,17 @@ public class ImageProcessor {
             reader
                 .lines()
                 .forEach(url -> {
-                        System.out.println("creating thread for url: " + url);
-                        completionService.submit(new ProcessingTask(url, compressionPercentage));
+                        if (verbose) {
+                            System.out.println("creating thread for url: " + url);
+                        }
+                        completionService
+                            .submit(
+                                ProcessingTask.builder()
+                                .imageUrl(url)
+                                .compressionPercentage(compressionPercentage)
+                                .verbose(verbose)
+                                .build()
+                            );
                     }
                 );
         } catch (IOException e) {
@@ -54,7 +73,7 @@ public class ImageProcessor {
         final BufferedWriter writer;
         try {
             writer = new BufferedWriter(
-                new FileWriter(outputFile));
+                new FileWriter(new File(outputFilePath)));
             int idx = 0;
             while (true) {
                 try {
@@ -69,9 +88,12 @@ public class ImageProcessor {
                             writer.write(",");
                         }
                         writer.newLine();
+                        writer.flush();
 
                         idx++;
-                        System.out.println(idx);
+                        if (verbose) {
+                            System.out.println(idx);
+                        }
 
                     }
 
@@ -80,20 +102,29 @@ public class ImageProcessor {
 
                 }
 
-                writer.flush();
+                if (verbose) {
+                    System.out.println("total records processed:  " + idx);
+                    Instant finish = Instant.now();
+                    long timeElapsed = Duration.between(start, finish).getSeconds();
+                    System.out.println("elapsed time:  " + timeElapsed);
 
-
-                System.out.println("total records processed:  " + idx);
-                Instant finish = Instant.now();
-                long timeElapsed = Duration.between(start, finish).getSeconds();
-                System.out.println("elapsed time:  " + timeElapsed);
+                }
             }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (verbose) {
             Instant finish = Instant.now();
             long timeElapsed = Duration.between(start, finish).getSeconds();
             System.out.println("total time:  " + timeElapsed);
 
+        }
 
-        } catch (IOException e) {
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
