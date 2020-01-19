@@ -177,7 +177,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -192,7 +192,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote25() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -207,7 +207,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote200() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -222,7 +222,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote1000() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -282,7 +282,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorCachedRemote() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -297,7 +297,7 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorSingleThreadedRemote() {
         ImageProcessor.builder()
-            .verbose(true)
+            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
