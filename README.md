@@ -29,3 +29,5 @@ Next Steps
 (i've been running it from my IDE)
 1. create a blacklist of urls to block
 1. add statistics reporting
+1. use jpeg or other sorts of compression
+1. make a pipeline to facilitate ^
