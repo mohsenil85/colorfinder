@@ -1,7 +1,5 @@
-package com.lmohseni.benchmark;
+package com.lmohseni;
 
-import com.lmohseni.ImageProcessor;
-import com.lmohseni.ProcessingTask;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -325,11 +323,11 @@ public class BenchmarkSuite {
             .processAllImages();
     }
 
-}
+    static class BenchmarkRunner {
 
-class BenchmarkRunner {
-
-    public static void main(String[] args) throws Exception {
-        org.openjdk.jmh.Main.main(args);
+        public static void main(String[] args) throws Exception {
+            org.openjdk.jmh.Main.main(args);
+        }
     }
 }
+
