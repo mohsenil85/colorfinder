@@ -57,7 +57,10 @@ public class ImageProcessor {
         cleanUp();
 
         final Instant finish = Instant.now();
-        System.out.printf("execution time: %s seconds\n", Duration.between(start, finish).getSeconds());
+        System.out.printf(
+            "execution time: %s seconds\n",
+            Duration.between(start, finish).getSeconds()
+        );
 
     }
 
@@ -114,11 +117,15 @@ public class ImageProcessor {
 
                 final Future<String[]> take =
                     completionService.poll(timeout, TimeUnit.SECONDS);
+                //blocking call, will return null after `timeout` seconds
 
                 if (take == null) {
+                    //if we reach the timeout, it means the completion service
+                    // is done receiving results, so exit out if the loop
                     break;
                 }
 
+                //unwrap future
                 recordResults(take.get());
 
             } catch (InterruptedException | ExecutionException e) {
