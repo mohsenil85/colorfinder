@@ -21,6 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
+
 @Data
 @Builder
 public class ImageProcessor {
@@ -98,12 +100,11 @@ public class ImageProcessor {
         try {
             if (strings != null) {
                 System.out
-                    .printf("recording result: url: %s color: %s color: %s color: %s\n", strings);
-                for (String str : strings) {
-                    writer.write(str);
-                    writer.write(",");
-                }
-                writer.newLine();
+                    .printf("recording result:\n url: %s , %s , %s , %s\n", strings);
+
+                writer.write(
+                    format("%s,%s,%s,%s\n", strings)
+                );
                 writer.flush();
                 //flush after each write so that if we get
                 // interrupted, we still can save all the
