@@ -11,6 +11,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ public class BenchmarkTest {
         static int quality = 50;
         static boolean ignoreWhite = false;
         static Map<String,String[]> localCache = new ConcurrentHashMap<>();
+        static Set<String> ignoreList = ConcurrentHashMap.newKeySet();
 
     }
 
@@ -54,6 +56,7 @@ public class BenchmarkTest {
             .localCache(Scope.localCache)
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
+            .ignoreList(Scope.ignoreList)
             .ignoreWhite(Scope.ignoreWhite)
             .build()
 
@@ -69,6 +72,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(10)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .build()
 
             .call();
@@ -83,6 +87,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(30)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .build()
 
             .call();
@@ -96,6 +101,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.localUrl)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -113,6 +119,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.localUrl)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -130,6 +137,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.localUrl)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -147,6 +155,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.localUrl)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -164,6 +173,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -181,6 +191,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -198,6 +209,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -216,6 +228,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -233,6 +246,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -250,6 +264,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -267,6 +282,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -284,6 +300,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
@@ -301,6 +318,7 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
+            .ignoreList(Scope.ignoreList)
             .imageListUrl(Scope.github)
             .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)

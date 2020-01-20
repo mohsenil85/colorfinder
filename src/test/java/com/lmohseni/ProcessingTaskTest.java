@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -22,13 +23,23 @@ public class ProcessingTaskTest {
     File referenceImage;
 
     @Mock
-    Map<String, String[]> map;
+    Map<String, String[]> localCache;
+
+    @Mock
+    Set<String> ignoreList;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl, 3, 5, true, map);
+        task = ProcessingTask.builder()
+            .imageUrl(imageUrl)
+            .colorCount(3)
+            .quality(5)
+            .ignoreWhite(false)
+            .localCache(localCache)
+            .ignoreList(ignoreList)
+            .build();
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -48,9 +59,9 @@ public class ProcessingTaskTest {
     public void call() {
         final String[] expected = {
             "http://i.imgur.com/TKLs9lo.jpg",
-            "#D9D8D6",
-            "#3D4557",
-            "#C33941"
+            "#F1F0F0",
+            "#3F4758",
+            "#D62C35"
         };
         final String[] actual = task.call();
         assertArrayEquals(expected, actual);
@@ -78,16 +89,29 @@ public class ProcessingTaskTest {
     public void downloadImageInvalidUrl() {
         ProcessingTask.builder()
             .imageUrl("invalidUrl")
-            .localCache(map)
+            .localCache(localCache)
+            .ignoreList(ignoreList)
             .build()
             .downloadImage();
     }
 
     @Test
+    public void downloadImageTroublesomeUrl() {
+        ProcessingTask.builder()
+            .imageUrl("https://i.redd.it/nrafqoujmety.jpg")
+            .localCache(localCache)
+            .ignoreList(ignoreList)
+            .build()
+            .downloadImage();
+    }
+
+
+    @Test
     public void getColorOccurrences() {
         ProcessingTask.builder()
             .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
-            .localCache(map)
+            .localCache(localCache)
+            .ignoreList(ignoreList)
             .build()
             .downloadImage();
     }

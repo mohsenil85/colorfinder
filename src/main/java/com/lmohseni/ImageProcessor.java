@@ -14,8 +14,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -41,12 +41,14 @@ public class ImageProcessor {
     private final ExecutorService executorService;
     @NonNull
     private final Map<String, String[]> localCache;
+    @NonNull
+    private final Set<String> ignoreList;
 
     CompletionService<String[]> completionService;
     URL imagesUrl;
     BufferedReader reader;
     BufferedWriter writer;
-    int recordsCount = 0;
+    int recordsCount;
 
 
     public void processAllImages() {
@@ -62,10 +64,9 @@ public class ImageProcessor {
 
         final Instant finish = Instant.now();
         final int duration = Duration.between(start, finish).getNano();
-        long durationInMs = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
-        System.out.printf(
-            "execution time: %s ms\n", durationInMs
-        );
+        long ms = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
+        System.out.printf("execution time: %s ms\n", ms);
+        System.out.printf("drop list length: %d \n", ignoreList.size());
 
     }
 
@@ -112,6 +113,7 @@ public class ImageProcessor {
                 .quality(quality)
                 .ignoreWhite(ignoreWhite)
                 .localCache(localCache)
+                .ignoreList(ignoreList)
                 .build()
         );
     }
@@ -174,6 +176,5 @@ public class ImageProcessor {
             System.out.println(e.getMessage());
         }
     }
-
 
 }

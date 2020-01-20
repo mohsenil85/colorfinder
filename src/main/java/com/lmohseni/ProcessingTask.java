@@ -8,10 +8,13 @@ import lombok.NonNull;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 @Data
@@ -25,13 +28,20 @@ public class ProcessingTask implements Callable<String[]> {
     private final boolean ignoreWhite;
 
     @NonNull
-    private final Map<String,String[]> localCache;
+    private final Map<String, String[]> localCache;
+    @NonNull
+    private final Set<String> ignoreList;
+
 
     @Override
     public String[] call() {
         final String[] localResult = localCache.get(imageUrl);
-        if (localResult != null){
-           return localResult;
+        if (localResult != null) {
+            return localResult;
+        }
+
+        if (ignoreList.contains(imageUrl)) {
+            return null;
         }
 
         final BufferedImage image = downloadImage();
@@ -49,7 +59,7 @@ public class ProcessingTask implements Callable<String[]> {
             String color3 = convertRgbArrayToHexColor(palette[2]);
 
             final String[] result = {imageUrl, color1, color2, color3};
-            localCache.put(imageUrl,result);
+            localCache.put(imageUrl, result);
             return result;
         }
 
@@ -76,13 +86,16 @@ public class ProcessingTask implements Callable<String[]> {
                 new BufferedInputStream(inputStream));
             return bufferedImage;
 
-        } catch (IllegalArgumentException | IOException e) {
-
-            //if something goes wrong here, just drop everything and return
-            //we will handle nulls downstream
-            System.out.printf("something went wrong on a thread: %s\n", e.getMessage());
-            return null;
+        } catch (FileNotFoundException e) {
+            System.out.printf("adding %s to ignore list\n", imageUrl);
+            ignoreList.add(imageUrl);
+        } catch (MalformedURLException e) {
+            System.out.printf("malformed url: %s", imageUrl);
+            ignoreList.add(imageUrl);
+        } catch (IOException e) {
+            System.out.printf("error : %s", e.getMessage());
         }
+        return null;
     }
 
 }

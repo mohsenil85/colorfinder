@@ -13,13 +13,13 @@ public class App {
 
         ImageProcessor.builder() //uses lombok.Builder
 
-            .timeout(1) //idle seconds to wait before shutdown
+            .timeout(5) //idle seconds to wait before shutdown
 
             .colorCount(3) //per spec
 
             .quality(1) //tune fidelity vs speed
 
-            .ignoreWhite(true)
+            .ignoreWhite(false)
 
             .imageListUrl(inputFile) //url pointing to list of images
                                      // (for a local file, use a path like
@@ -30,9 +30,10 @@ public class App {
 
             .executorService(
                 Executors.newWorkStealingPool()
-            ) //what type of threading strategy to use (see benchmarks)
+            ) //threading strategy to use (see benchmarks)
 
             .localCache(new ConcurrentHashMap<>())
+            .ignoreList(ConcurrentHashMap.newKeySet())
             //use memoization
 
             .build()

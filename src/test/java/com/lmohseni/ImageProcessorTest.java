@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 public class ImageProcessorTest {
@@ -16,8 +17,10 @@ public class ImageProcessorTest {
     private ExecutorService executorService;
 
     @Mock
-    private Map<String,String[]> localCache;
+    private Map<String, String[]> localCache;
 
+    @Mock
+    private Set<String> ignoreList;
 
     @Before
     public void setUp() {
@@ -30,6 +33,7 @@ public class ImageProcessorTest {
             .outputFilePath("./src/test/resources/test-results.csv")
             .executorService(executorService)
             .localCache(localCache)
+            .ignoreList(ignoreList)
             .build();
 
     }
