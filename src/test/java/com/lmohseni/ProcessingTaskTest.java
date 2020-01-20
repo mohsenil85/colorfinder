@@ -85,6 +85,26 @@ public class ProcessingTaskTest {
             .downloadImage();
     }
 
+
+    @Test
+    public void convertRgbArrayToHexColor123() {
+        final String actual = task.convertRgbArrayToHexColor(new int[]{1, 2, 3});
+        final String expected = "#123";
+        assertEquals(expected,actual);
+    }
+
+    @Test
+    public void convertRgbArrayToHexColorABC() {
+        final int a = Integer.parseInt("a", 16);
+
+        System.out.printf(String.valueOf(a));
+        final String actual = task.convertRgbArrayToHexColor(new int[]{1, 2, 3});
+        final String expected = "#123";
+        assertEquals(expected,actual);
+    }
+
+
+
     private void retrieveReferenceImage() throws Exception {
         final BufferedImage image = task.downloadImage();
         ImageIO.write(image, "JPEG", referenceImage);

@@ -46,7 +46,7 @@ public class ProcessingTask implements Callable<String[]> {
         return null;
     }
 
-    private String convertRgbArrayToHexColor(int[] rgb) {
+    String convertRgbArrayToHexColor(int[] rgb) {
 
         return String.format(
             "#%s%s%s",
