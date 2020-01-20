@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 @Builder
 public class ImageProcessor {
 
-    private final float compressionPercentage;
     private final int timeout;
     @NonNull
     private final String imageListUrl;
@@ -123,7 +122,6 @@ public class ImageProcessor {
             .submit(
                 ProcessingTask.builder()
                     .imageUrl(url)
-                    .compressionPercentage(compressionPercentage)
                     .build()
             );
 

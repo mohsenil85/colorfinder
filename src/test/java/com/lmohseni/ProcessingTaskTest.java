@@ -7,7 +7,6 @@ import org.mockito.MockitoAnnotations;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -24,7 +23,7 @@ public class ProcessingTaskTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl, .5f);
+        task = new ProcessingTask(imageUrl);
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -64,19 +63,18 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null, .5f);
+        new ProcessingTask(null);
     }
 
     @Test
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl", .5f);
+        final ProcessingTask task = new ProcessingTask("invalidUrl");
         task.downloadImage();
     }
 
     @Test
     public void getColorOccurrences() {
-        final BufferedImage image =  ProcessingTask.builder()
-            .compressionPercentage(.5f)
+        final BufferedImage image = ProcessingTask.builder()
             .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
             .build()
             .downloadImage();

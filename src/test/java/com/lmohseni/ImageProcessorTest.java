@@ -21,7 +21,6 @@ public class ImageProcessorTest {
         MockitoAnnotations.initMocks(this);
 
         imageProcessor = ImageProcessor.builder()
-            .compressionPercentage(.5f)
             .timeout(5)
             .imageListUrl("file:./src/test/resources/test-list.txt")
             .outputFilePath("./src/test/resources/test-results.csv")

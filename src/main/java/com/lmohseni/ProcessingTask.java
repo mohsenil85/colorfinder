@@ -20,10 +20,6 @@ public class ProcessingTask implements Callable<String[]> {
     @NonNull
     private final String imageUrl;
 
-    @NonNull
-    private final float compressionPercentage;
-
-
     @Override
     public String[] call() {
 
@@ -44,7 +40,7 @@ public class ProcessingTask implements Callable<String[]> {
         String blueHex = Integer.toHexString(rgb[1]);
         String greenHex = Integer.toHexString(rgb[2]);
 
-        final String result =  "#" + redHex + blueHex + greenHex;
+        final String result = "#" + redHex + blueHex + greenHex;
         return result.toUpperCase();
     }
 
