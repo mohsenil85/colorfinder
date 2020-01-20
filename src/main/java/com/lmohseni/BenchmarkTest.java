@@ -43,11 +43,9 @@ public class BenchmarkTest {
         }
     }
 
-
     @Benchmark
     @Test
     public void BenchProcessingTasks() {
-
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)
@@ -56,13 +54,11 @@ public class BenchmarkTest {
             .build()
 
             .call();
-
     }
 
     @Benchmark
     @Test
     public void testProcessingTask10() {
-
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)
@@ -71,13 +67,11 @@ public class BenchmarkTest {
             .build()
 
             .call();
-
     }
 
     @Benchmark
     @Test
     public void testProcessingTask30() {
-
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)

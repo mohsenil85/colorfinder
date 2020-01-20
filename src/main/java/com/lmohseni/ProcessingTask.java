@@ -27,6 +27,7 @@ public class ProcessingTask implements Callable<String[]> {
     public String[] call() {
 
         final BufferedImage image = downloadImage();
+
         if (image != null) {
             final int[][] palette = ColorThief.getPalette(
                 image,
@@ -34,12 +35,14 @@ public class ProcessingTask implements Callable<String[]> {
                 quality,
                 ignoreWhite
             );
+
             String color1 = convertRgbArrayToHexColor(palette[0]);
             String color2 = convertRgbArrayToHexColor(palette[1]);
             String color3 = convertRgbArrayToHexColor(palette[2]);
 
             return new String[]{imageUrl, color1, color2, color3};
         }
+
         return null;
     }
 
@@ -53,18 +56,22 @@ public class ProcessingTask implements Callable<String[]> {
         ).toUpperCase();
     }
 
-
     BufferedImage downloadImage() {
+
         try {
+
             final URL url = new URL(imageUrl);
             final InputStream inputStream = url.openStream();
             final BufferedImage bufferedImage = ImageIO.read(
                 new BufferedInputStream(inputStream));
             return bufferedImage;
+
         } catch (IllegalArgumentException | IOException e) {
+
             //if something goes wrong here, just drop everything and return
             //we will handle nulls downstream
             return null;
         }
     }
+
 }

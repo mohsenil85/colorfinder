@@ -46,28 +46,34 @@ public class ImageProcessor {
 
 
     public void processAllImages() {
+
         final Instant start = Instant.now();
+
         initialize();
         reader
             .lines()
             .forEach(url -> launchThread(url));
         collectResults();
         cleanUp();
-        Instant finish = Instant.now();
+
+        final Instant finish = Instant.now();
         System.out.printf("execution time: %d\n", Duration.between(start, finish).getSeconds());
+
     }
 
     private void initialize() {
-        //does the complicated work of ensuring that all our services
-        //are set up properly
+
         try {
+
             completionService = new ExecutorCompletionService<>(
                 executorService);
+
             try {
                 imagesUrl = new URL(imageListUrl);
             } catch (MalformedURLException e) {
                 throw new IllegalStateException("could not create a url from: " + imageListUrl);
             }
+
             try {
                 reader = new BufferedReader(
                     new InputStreamReader(imagesUrl.openStream()));
@@ -87,24 +93,49 @@ public class ImageProcessor {
         }
     }
 
-    private void cleanUp() {
+    private void launchThread(String url) {
 
-        executorService.shutdownNow();
-        try {
-            reader.close();
-            writer.close();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+        System.out.printf("launching a thread for %s\n", url);
+
+        completionService.submit(
+            ProcessingTask.builder()
+                .imageUrl(url)
+                .colorCount(colorCount)
+                .quality(quality)
+                .ignoreWhite(ignoreWhite)
+                .build()
+        );
     }
 
+    private void collectResults() {
+
+        while (true) {
+            try {
+
+                final Future<String[]> take =
+                    completionService.poll(timeout, TimeUnit.SECONDS);
+
+                if (take == null) {
+                    break;
+                }
+
+                recordResults(take.get());
+
+            } catch (InterruptedException | ExecutionException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        System.out.printf("processed %d records\n", recordsCount);
+    }
 
     private void recordResults(String[] strings) {
+
         try {
+
             if (strings != null) {
                 final String result = format("%s,%s,%s,%s\n", strings);
-                System.out
-                    .printf("recording result:\n%s\n", result);
+                System.out.printf("recording result:\n%s\n", result);
                 writer.write(result);
                 writer.flush();
                 //flush after each write so that if we get
@@ -112,42 +143,23 @@ public class ImageProcessor {
                 // results collected so far
                 recordsCount++;
             }
+
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
 
+    private void cleanUp() {
 
-    private void launchThread(String url) {
-        System.out.printf("launching a thread for %s\n", url);
-        completionService
-            .submit(
-                ProcessingTask.builder()
-                    .imageUrl(url)
-                    .colorCount(colorCount)
-                    .quality(quality)
-                    .ignoreWhite(ignoreWhite)
-                    .build()
-            );
+        try {
 
+            executorService.shutdownNow();
+            reader.close();
+            writer.close();
 
-    }
-
-    private void collectResults() {
-        while (true) {
-            try {
-                final Future<String[]> take =
-                    completionService.poll(timeout, TimeUnit.SECONDS);
-                if (take == null) {
-                    break;
-                }
-                final String[] results = take.get();
-                recordResults(results);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
-        System.out.printf("processed %d records\n", recordsCount);
     }
 
 
