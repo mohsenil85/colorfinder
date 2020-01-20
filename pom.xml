@@ -17,6 +17,24 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <project.mainClass>com.lmohseni.App</project.mainClass>
+            </properties>
+        </profile>
+        <profile>
+            <id>benchmark</id>
+            <properties>
+                <project.mainClass>org.openjdk.jmh.Main</project.mainClass>
+            </properties>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -81,7 +99,7 @@
                                 <!-- add Main-Class to manifest file -->
                                 <transformer
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.lmohseni.App</mainClass>
+                                    <mainClass>${project.mainClass}</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

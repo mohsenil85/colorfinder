@@ -1,8 +1,5 @@
 package com.lmohseni;
 
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -20,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.All)
 @Warmup(iterations = 2)
 @Measurement(iterations = 10)
-@Ignore("Don't run in CI")
 public class BenchmarkTest {
 
     @State(org.openjdk.jmh.annotations.Scope.Thread)
@@ -36,15 +32,15 @@ public class BenchmarkTest {
 
     }
 
-    static class BenchmarkRunner {
+    public static class BenchmarkRunner {
 
         public static void main(String[] args) throws Exception {
             org.openjdk.jmh.Main.main(args);
         }
     }
 
+
     @Benchmark
-    @Test
     public void BenchProcessingTasks() {
 
         final String[] actual = ProcessingTask.builder()
@@ -60,11 +56,9 @@ public class BenchmarkTest {
             "#FFB54B"
         };
 
-        Assert.assertArrayEquals(expected, actual);
     }
 
     @Benchmark
-    @Test
     public void testProcessingTask10() {
 
         final String[] actual = ProcessingTask.builder()
@@ -80,11 +74,9 @@ public class BenchmarkTest {
             "#FFB54B"
         };
 
-        Assert.assertArrayEquals(expected, actual);
     }
 
     @Benchmark
-    @Test
     public void testProcessingTask90() {
 
         final String[] actual = ProcessingTask.builder()
@@ -100,11 +92,9 @@ public class BenchmarkTest {
             "#FFB54B"
         };
 
-        Assert.assertArrayEquals(expected, actual);
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorForkJoinLocal() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -117,7 +107,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorFixedLocal() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -130,7 +119,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorSingleThreadedLocal() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -143,7 +131,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorCachedLocal() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -156,7 +143,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorForkJoinRemote() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -169,7 +155,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorForkJoinRemote25() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -182,7 +167,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorForkJoinRemote200() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -195,7 +179,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorForkJoinRemote1000() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -208,7 +191,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorFixedRemote50() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -221,7 +203,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorFixedRemote200() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -234,7 +215,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorFixedRemote100() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -247,7 +227,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorCachedRemote() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -260,7 +239,6 @@ public class BenchmarkTest {
     }
 
     @Benchmark
-    @Test
     public void testImageProcessorSingleThreadedRemote() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
@@ -271,6 +249,7 @@ public class BenchmarkTest {
 
             .processAllImages();
     }
+
 
 
 }
