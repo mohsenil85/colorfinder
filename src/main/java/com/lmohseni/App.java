@@ -10,9 +10,9 @@ public class App {
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
 
         ImageProcessor.builder() //uses lombok.Builder
-            .timeout(10) //idle seconds to wait before shutting down
+            .timeout(3) //idle seconds to wait before shutting down
             .colorCount(3) //per spec
-            .quality(1) //tune the tradeoff between fidelity and speed
+            .quality(50) //tune the tradeoff between fidelity and speed
             .ignoreWhite(false)
             .imageListUrl(inputFile) //url pointing to list of images
             // (for a local file, use a path like 'file:./some/local.csv')
