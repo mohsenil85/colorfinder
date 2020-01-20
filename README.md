@@ -12,9 +12,10 @@ Notes
 1. uses Project Lombok for concision (eg, `@Data`)
 1. project generated with
 `mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
+1. uses https://github.com/SvenWoltmann/color-thief-java to determine color palettes 
 
 1. build with `mvn clean package`
-1. run with `java -cp target/colorfinder-1.0-SNAPSHOT.jar com.lmohseni.App -Xms2G -Xmx8G`
+1. run with `java -jar target/colorfinder-1.0-SNAPSHOT.jar -Xms2G -Xmx8G`
 
 How it works
 ----------------------
