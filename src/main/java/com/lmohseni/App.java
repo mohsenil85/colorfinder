@@ -13,13 +13,13 @@ public class App {
 
         ImageProcessor.builder() //uses lombok.Builder
 
-            .timeout(1) //idle seconds to wait before shutting down
+            .timeout(1) //idle seconds to wait before shutdown
 
             .colorCount(3) //per spec
 
-            .quality(50) //tune the tradeoff between fidelity and speed
+            .quality(1) //tune fidelity vs speed
 
-            .ignoreWhite(false)
+            .ignoreWhite(true)
 
             .imageListUrl(inputFile) //url pointing to list of images
                                      // (for a local file, use a path like
