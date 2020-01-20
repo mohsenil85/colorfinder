@@ -15,10 +15,10 @@ Notes
 1. uses https://github.com/SvenWoltmann/color-thief-java to determine color palettes 
 
 1. build with `mvn clean package`
-1. run with `java -jar target/colorfinder-1.0-SNAPSHOT.jar -Xms2G -Xmx8G`
+1. run with `java -jar target/colorfinder.jar -Xms2G -Xmx8G`
 
 1. build and run benchmarking suite:
- `mvn -Pbenchmark clean package && java -jar target/colorfinder-1.0-SNAPSHOT.jar`
+ `mvn -Pbenchmark clean package && java -jar target/benchmarks.jar`
 
 How it works
 ------------

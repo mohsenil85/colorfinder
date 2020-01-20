@@ -46,7 +46,7 @@ public class BenchmarkTest {
     @Benchmark
     public void BenchProcessingTasks() {
 
-        final String[] actual = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
@@ -60,7 +60,7 @@ public class BenchmarkTest {
     @Benchmark
     public void testProcessingTask10() {
 
-        final String[] actual = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)
             .quality(10)
@@ -74,7 +74,7 @@ public class BenchmarkTest {
     @Benchmark
     public void testProcessingTask30() {
 
-        final String[] actual = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .colorCount(Scope.colorCount)
             .quality(30)
@@ -239,7 +239,6 @@ public class BenchmarkTest {
 
             .processAllImages();
     }
-
 
 
 }

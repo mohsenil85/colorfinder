@@ -18,7 +18,7 @@ public class App {
             // (for a local file, use a path like 'file:./some/local.csv')
             .outputFilePath("./target/results.csv") //where to print the results
             .executorService(Executors
-                .newWorkStealingPool(16)) //what type of threading strategy to use (see benchmarks)
+                .newWorkStealingPool()) //what type of threading strategy to use (see benchmarks)
             .build()
 
             .processAllImages(); //do it!

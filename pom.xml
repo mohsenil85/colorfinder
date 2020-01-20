@@ -25,12 +25,14 @@
             </activation>
             <properties>
                 <project.mainClass>com.lmohseni.App</project.mainClass>
+                <project.finalName>colorfinder</project.finalName>
             </properties>
         </profile>
         <profile>
             <id>benchmark</id>
             <properties>
                 <project.mainClass>org.openjdk.jmh.Main</project.mainClass>
+                <project.finalName>benchmarks</project.finalName>
             </properties>
         </profile>
     </profiles>
@@ -95,6 +97,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <finalName>${project.finalName}</finalName>
                             <transformers>
                                 <!-- add Main-Class to manifest file -->
                                 <transformer
@@ -109,11 +112,4 @@
         </plugins>
     </build>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>
