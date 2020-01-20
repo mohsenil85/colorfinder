@@ -50,7 +50,7 @@ public class ImageProcessor {
         collectResults();
         cleanUp();
         Instant finish = Instant.now();
-        System.out.printf("execution time: %d", Duration.between(start, finish).getSeconds());
+        System.out.printf("execution time: %d\n", Duration.between(start, finish).getSeconds());
     }
 
     private void initialize() {
