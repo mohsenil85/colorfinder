@@ -102,12 +102,10 @@ public class ImageProcessor {
     private void recordResults(String[] strings) {
         try {
             if (strings != null) {
+                final String result = format("%s,%s,%s,%s\n", strings);
                 System.out
-                    .printf("recording result:\n url: %s , %s , %s , %s\n", strings);
-
-                writer.write(
-                    format("%s,%s,%s,%s\n", strings)
-                );
+                    .printf("recording result:\n%s\n", result);
+                writer.write(result);
                 writer.flush();
                 //flush after each write so that if we get
                 // interrupted, we still can save all the
