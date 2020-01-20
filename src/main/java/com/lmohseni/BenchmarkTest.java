@@ -29,6 +29,9 @@ public class BenchmarkTest {
         static String testOutput = "./target/results.csv";
         static int timeout = 5;
         static int nThreads = 50;
+        static int colorCount = 3;
+        static int quality = 3;
+        static boolean ignoreWhite = false;
 
     }
 
@@ -45,16 +48,12 @@ public class BenchmarkTest {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .colorCount(Scope.colorCount)
+            .quality(Scope.quality)
+            .ignoreWhite(Scope.ignoreWhite)
             .build()
 
             .call();
-
-        final String[] expected = new String[]{
-            "https://i.redd.it/ftd3sx5ah13z.jpg",
-            "#FFB44B",
-            "#FFFDFE",
-            "#FFB54B"
-        };
 
     }
 
@@ -63,35 +62,26 @@ public class BenchmarkTest {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .colorCount(Scope.colorCount)
+            .quality(10)
+            .ignoreWhite(Scope.ignoreWhite)
             .build()
 
             .call();
-
-        final String[] expected = new String[]{
-            "https://i.redd.it/ftd3sx5ah13z.jpg",
-            "#FFB44B",
-            "#FFFDFE",
-            "#FFB54B"
-        };
 
     }
 
     @Benchmark
-    public void testProcessingTask90() {
+    public void testProcessingTask30() {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .colorCount(Scope.colorCount)
+            .quality(30)
+            .ignoreWhite(Scope.ignoreWhite)
             .build()
 
             .call();
-
-        final String[] expected = new String[]{
-            "https://i.redd.it/ftd3sx5ah13z.jpg",
-            "#FFB44B",
-            "#FFFDFE",
-            "#FFB54B"
-        };
-
     }
 
     @Benchmark
