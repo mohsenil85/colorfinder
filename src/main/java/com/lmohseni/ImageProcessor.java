@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 @Builder
 public class ImageProcessor {
 
-    //tunables:
-    private final boolean verbose;
     private final float compressionPercentage;
     private final int timeout;
     @NonNull
@@ -35,86 +34,117 @@ public class ImageProcessor {
     @NonNull
     private final ExecutorService executorService;
 
+    CompletionService<String[]> completionService;
+    URL imagesUrl;
+    BufferedReader reader;
+    BufferedWriter writer;
+    int recordsCount = 0;
+
+
     public void processAllImages() {
+        final Instant start = Instant.now();
+        initialize();
+        reader
+            .lines()
+            .forEach(url -> launchThread(url));
+        collectResults();
+        cleanUp();
+        Instant finish = Instant.now();
+        System.out.printf("execution time: %d", Duration.between(start, finish).getSeconds());
+    }
 
-        final CompletionService<String[]> completionService =
-            new ExecutorCompletionService<>(
-                executorService);
-
-        Instant start = Instant.now();
-
-        final URL imagesUrl;
+    private void initialize() {
+        //does the complicated work of ensuring that all our services
+        //are set up properly
         try {
-            imagesUrl = new URL(imageListUrl);
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(imagesUrl.openStream()));
-            reader
-                .lines()
-                .forEach(url -> {
-                        if (verbose) {
-                            System.out.println("creating thread for url: " + url);
-                        }
-                        completionService
-                            .submit(
-                                ProcessingTask.builder()
-                                    .imageUrl(url)
-                                    .compressionPercentage(compressionPercentage)
-                                    .verbose(verbose)
-                                    .build()
-                            );
-                    }
-                );
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        int idx = 0;
-        while (true) {
+            completionService = new ExecutorCompletionService<>(
+                executorService);
             try {
-                final BufferedWriter writer = new BufferedWriter(
+                imagesUrl = new URL(imageListUrl);
+            } catch (MalformedURLException e) {
+                throw new IllegalStateException("could not create a url from: " + imageListUrl);
+            }
+            try {
+                reader = new BufferedReader(
+                    new InputStreamReader(imagesUrl.openStream()));
+            } catch (IOException e) {
+                throw new IllegalStateException("could not read from: " + imageListUrl);
+            }
+
+            try {
+                writer = new BufferedWriter(
                     new FileWriter(new File(outputFilePath)));
-                final Future<String[]> take = completionService.poll(timeout, TimeUnit.SECONDS);
+            } catch (IOException e) {
+                throw new IllegalStateException("could not write at: " + outputFilePath);
+            }
+
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void cleanUp() {
+
+        executorService.shutdownNow();
+        try {
+            reader.close();
+            writer.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    private void recordResults(String[] strings) {
+        try {
+            if (strings != null) {
+                System.out
+                    .printf("recording result: url: %s color: %s color: %s color: %s\n", strings);
+                for (String str : strings) {
+                    writer.write(str);
+                    writer.write(",");
+                }
+                writer.newLine();
+                writer.flush();
+                //flush after each write so that if we get
+                // interrupted, we still can save all the
+                // results collected so far
+                recordsCount++;
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    private void launchThread(String url) {
+        System.out.printf("launching a thread for %s\n", url);
+        completionService
+            .submit(
+                ProcessingTask.builder()
+                    .imageUrl(url)
+                    .compressionPercentage(compressionPercentage)
+                    .build()
+            );
+
+
+    }
+
+    private void collectResults() {
+        try {
+            while (true) {
+                final Future<String[]> take =
+                    completionService.poll(timeout, TimeUnit.SECONDS);
                 if (take == null) {
-                    if (verbose) {
-                        System.out.printf("maximum idle seconds reached: %d\n", timeout);
-                    }
-                    writer.close();
-                    executorService.shutdownNow();
                     break;
                 }
-                final String[] strings = take.get();
-                if (strings != null) {
-                    for (String str : strings) {
-                        writer.write(str);
-                        writer.write(",");
-                    }
-                    writer.newLine();
-                    writer.flush();
-
-                    idx++;
-                    if (verbose) {
-                        System.out.printf("total records processed: %d\n", idx);
-                        Instant finish = Instant.now();
-                        long timeElapsed = Duration.between(start, finish).getSeconds();
-                        System.out.printf("elapsed time: %d\n", timeElapsed);
-                    }
-
-                }
-
-            } catch (InterruptedException | ExecutionException | NullPointerException | IOException e) {
-                System.out.println(e.getMessage());
-
+                final String[] results = take.get();
+                recordResults(results);
             }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
         }
-
-        if (verbose) {
-            Instant finish = Instant.now();
-            long timeElapsed = Duration.between(start, finish).getSeconds();
-            System.out.println("total time:  " + timeElapsed);
-
-        }
-
+        System.out.printf("recorded %d records\n", recordsCount);
     }
 
 

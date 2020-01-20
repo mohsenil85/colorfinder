@@ -6,8 +6,7 @@ import java.util.concurrent.Executors;
 public class App {
 
     public static void main(String[] args) {
-        ImageProcessor.builder() //uses lombok builder pattern
-            .verbose(true) //turn on verbosity to help with debugging
+        ImageProcessor.builder() //uses lombok.Builder
             .compressionPercentage(.1f) //amount to scale down the image by
             .timeout(10) //idle seconds to wait before shutting down
             .imageListUrl(

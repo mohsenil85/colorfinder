@@ -6,7 +6,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class ImageProcessorTest {
 
@@ -22,7 +21,6 @@ public class ImageProcessorTest {
         MockitoAnnotations.initMocks(this);
 
         imageProcessor = ImageProcessor.builder()
-            .verbose(true)
             .compressionPercentage(.5f)
             .timeout(5)
             .imageListUrl("file:./src/test/resources/test-list.txt")

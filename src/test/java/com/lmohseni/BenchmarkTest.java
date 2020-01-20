@@ -31,7 +31,6 @@ public class BenchmarkTest {
         static String github =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
         static String testOutput = "./target/results.csv";
-        static boolean verbose = false;
         static float compression = .5f;
         static int timeout = 5;
         static int nThreads = 50;
@@ -51,7 +50,6 @@ public class BenchmarkTest {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .build()
 
@@ -73,7 +71,6 @@ public class BenchmarkTest {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .build()
 
@@ -95,7 +92,6 @@ public class BenchmarkTest {
 
         final String[] actual = ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .verbose(Scope.verbose)
             .compressionPercentage(.9f)
             .build()
 
@@ -115,7 +111,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinLocal() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.localUrl)
@@ -130,7 +125,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorFixedLocal() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.localUrl)
@@ -145,7 +139,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorSingleThreadedLocal() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.localUrl)
@@ -160,7 +153,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorCachedLocal() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.localUrl)
@@ -175,7 +167,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -190,7 +181,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote25() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -205,7 +195,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote200() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -220,7 +209,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorForkJoinRemote1000() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -235,7 +223,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorFixedRemote50() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -250,7 +237,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorFixedRemote200() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -265,7 +251,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorFixedRemote100() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(Scope.compression)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -280,7 +265,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorCachedRemote() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)
@@ -295,7 +279,6 @@ public class BenchmarkTest {
     @Test
     public void testImageProcessorSingleThreadedRemote() {
         ImageProcessor.builder()
-            .verbose(Scope.verbose)
             .compressionPercentage(.1f)
             .timeout(Scope.timeout)
             .imageListUrl(Scope.github)

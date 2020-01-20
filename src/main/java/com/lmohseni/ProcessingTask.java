@@ -1,21 +1,16 @@
 package com.lmohseni;
 
+import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 @Data
@@ -28,103 +23,43 @@ public class ProcessingTask implements Callable<String[]> {
     @NonNull
     private final float compressionPercentage;
 
-    private final boolean verbose;
-
-    private final String troublesomeUlr = "https://i.redd.it/nrafqoujmety.jpg";
 
     @Override
     public String[] call() {
-        Instant start = Instant.now();
 
-        if (imageUrl.equals(troublesomeUlr)) {
-            return null;
-        }
         final BufferedImage image = downloadImage();
         if (image != null) {
-            final BufferedImage scaled = resizeImage(image, compressionPercentage);
-            final HashMap<String, Integer> occurrences = getColorOccurrences(scaled);
-            final String[] strings = determineMostPrevalentColors(occurrences);
-            if (verbose) {
-                System.out.println(Arrays.toString(strings));
-            }
-            if (verbose) {
-                Instant finish = Instant.now();
-                long timeElapsed = Duration.between(start, finish).getSeconds();
-                System.out.println(
-                    Thread.currentThread().getName() + " took " + timeElapsed + " seconds.");
-            }
-            return strings;
+            final int[][] palette = ColorThief.getPalette(image, 3, 10, false);
+            String color1 = convertRgbArrayToHexColor(palette[0]);
+            String color2 = convertRgbArrayToHexColor(palette[1]);
+            String color3 = convertRgbArrayToHexColor(palette[2]);
+
+            return new String[]{imageUrl, color1, color2, color3};
         }
         return null;
+    }
+
+    private String convertRgbArrayToHexColor(int[] rgb) {
+        String redHex = Integer.toHexString(rgb[0]);
+        String blueHex = Integer.toHexString(rgb[1]);
+        String greenHex = Integer.toHexString(rgb[2]);
+
+        final String result =  "#" + redHex + blueHex + greenHex;
+        return result.toUpperCase();
     }
 
 
     BufferedImage downloadImage() {
-        final URL url;
         try {
-            url = new URL(imageUrl);
-            return ImageIO.read(
-                new BufferedInputStream(url.openStream()));
-
+            final URL url = new URL(imageUrl);
+            final InputStream inputStream = url.openStream();
+            final BufferedImage bufferedImage = ImageIO.read(
+                new BufferedInputStream(inputStream));
+            return bufferedImage;
         } catch (IllegalArgumentException | IOException e) {
-            throw new IllegalThreadStateException("Problem downloading image from: " + imageUrl);
+            //if something goes wrong here, just drop everything and return
+            //we will handle nulls downstream
+            return null;
         }
     }
-
-    HashMap<String, Integer> getColorOccurrences(BufferedImage image) {
-        if (image == null) {
-            throw new IllegalThreadStateException("got a null image from url:" + imageUrl);
-        }
-
-        final HashMap<String, Integer> occurrences = new HashMap<>();
-        for (int x = 0; x < image.getWidth(); x++) {
-            for (int y = 0; y < image.getHeight(); y++) {
-                final String rgb = convertToRgbHex(image.getRGB(x, y));
-                occurrences.merge(rgb, 1, Integer::sum);
-            }
-        }
-        return occurrences;
-    }
-
-    BufferedImage resizeImage(BufferedImage inputImage, float percent) {
-        if (inputImage != null) {
-            int scaledWidth = (int) (inputImage.getWidth() * percent);
-            int scaledHeight = (int) (inputImage.getHeight() * percent);
-
-            BufferedImage outputImage = new BufferedImage(scaledWidth,
-                scaledHeight, inputImage.getType());
-
-            Graphics2D g2d = outputImage.createGraphics();
-            g2d.drawImage(inputImage, 0, 0, scaledWidth, scaledHeight, null);
-            g2d.dispose();
-
-            return outputImage;
-        }
-        return null;
-    }
-
-    private String[] determineMostPrevalentColors(HashMap<String, Integer> map) {
-
-        Map.Entry<String, Integer> color1 = new AbstractMap.SimpleEntry<>("", 0);
-        Map.Entry<String, Integer> color2 = new AbstractMap.SimpleEntry<>("", 0);
-        Map.Entry<String, Integer> color3 = new AbstractMap.SimpleEntry<>("", 0);
-
-        for (Map.Entry<String, Integer> entry : map.entrySet()) {
-            if (entry.getValue() > color1.getValue()) {
-                color3 = color2;  //propagate runners up, order matters
-                color2 = color1;
-                color1 = entry;
-            }
-        }
-        return new String[]{imageUrl, color1.getKey(), color2.getKey(), color3.getKey()};
-    }
-
-    private String convertToRgbHex(int rgbInt) {
-        String result = Integer.toHexString(rgbInt)
-            .toUpperCase()
-            .substring(0, 6); //ignore alpha channel if it exists
-        return "#" + result;
-    }
-
-
 }

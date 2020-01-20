@@ -7,6 +7,7 @@ import org.mockito.MockitoAnnotations;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -23,7 +24,7 @@ public class ProcessingTaskTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl, .5f, true);
+        task = new ProcessingTask(imageUrl, .5f);
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -43,9 +44,9 @@ public class ProcessingTaskTest {
     public void call() {
         final String[] expected = {
             "http://i.imgur.com/TKLs9lo.jpg",
-            "#FFFFFF",
-            "#FFF5F5",
-            "#FF9A9A"
+            "#F1F0F0",
+            "#3D4658",
+            "#D62C35"
         };
         final String[] actual = task.call();
         assertArrayEquals(expected, actual);
@@ -63,19 +64,22 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null,.5f, true);
+        new ProcessingTask(null, .5f);
     }
 
-    @Test(expected = java.lang.IllegalThreadStateException.class)
+    @Test
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl",.5f, true);
+        final ProcessingTask task = new ProcessingTask("invalidUrl", .5f);
         task.downloadImage();
     }
 
-    @Test(expected = java.lang.IllegalThreadStateException.class)
-    public void downloadImageNotAJpg() {
-        final ProcessingTask task = new ProcessingTask("http://google.com", .5f, true);
-        task.getColorOccurrences(null);
+    @Test
+    public void getColorOccurrences() {
+        final BufferedImage image =  ProcessingTask.builder()
+            .compressionPercentage(.5f)
+            .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
+            .build()
+            .downloadImage();
     }
 
     private void retrieveReferenceImage() throws Exception {
