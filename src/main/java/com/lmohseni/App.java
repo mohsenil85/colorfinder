@@ -1,6 +1,7 @@
 package com.lmohseni;
 
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 public class App {
@@ -30,6 +31,9 @@ public class App {
             .executorService(
                 Executors.newWorkStealingPool()
             ) //what type of threading strategy to use (see benchmarks)
+
+            .localCache(new ConcurrentHashMap<>())
+            //use memoization
 
             .build()
 

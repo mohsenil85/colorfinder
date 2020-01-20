@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @Data
@@ -23,8 +24,15 @@ public class ProcessingTask implements Callable<String[]> {
     private final int quality;
     private final boolean ignoreWhite;
 
+    @NonNull
+    private final Map<String,String[]> localCache;
+
     @Override
     public String[] call() {
+        final String[] localResult = localCache.get(imageUrl);
+        if (localResult != null){
+           return localResult;
+        }
 
         final BufferedImage image = downloadImage();
 
@@ -40,7 +48,9 @@ public class ProcessingTask implements Callable<String[]> {
             String color2 = convertRgbArrayToHexColor(palette[1]);
             String color3 = convertRgbArrayToHexColor(palette[2]);
 
-            return new String[]{imageUrl, color1, color2, color3};
+            final String[] result = {imageUrl, color1, color2, color3};
+            localCache.put(imageUrl,result);
+            return result;
         }
 
         return null;
@@ -70,6 +80,7 @@ public class ProcessingTask implements Callable<String[]> {
 
             //if something goes wrong here, just drop everything and return
             //we will handle nulls downstream
+            System.out.printf("something went wrong on a thread: %s\n", e.getMessage());
             return null;
         }
     }

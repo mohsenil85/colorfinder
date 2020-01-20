@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -37,6 +38,8 @@ public class ImageProcessor {
     private final String outputFilePath;
     @NonNull
     private final ExecutorService executorService;
+    @NonNull
+    private final Map<String, String[]> localCache;
 
     CompletionService<String[]> completionService;
     URL imagesUrl;
@@ -106,6 +109,7 @@ public class ImageProcessor {
                 .colorCount(colorCount)
                 .quality(quality)
                 .ignoreWhite(ignoreWhite)
+                .localCache(localCache)
                 .build()
         );
     }

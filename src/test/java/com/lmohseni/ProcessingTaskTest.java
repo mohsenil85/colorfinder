@@ -2,11 +2,13 @@ package com.lmohseni;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -19,11 +21,14 @@ public class ProcessingTaskTest {
 
     File referenceImage;
 
+    @Mock
+    Map<String, String[]> map;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl, 3, 5, true);
+        task = new ProcessingTask(imageUrl, 3, 5, true, map);
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -90,19 +95,15 @@ public class ProcessingTaskTest {
     public void convertRgbArrayToHexColor123() {
         final String actual = task.convertRgbArrayToHexColor(new int[]{1, 2, 3});
         final String expected = "#123";
-        assertEquals(expected,actual);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void convertRgbArrayToHexColorABC() {
-        final int a = Integer.parseInt("a", 16);
-
-        System.out.printf(String.valueOf(a));
-        final String actual = task.convertRgbArrayToHexColor(new int[]{1, 2, 3});
-        final String expected = "#123";
-        assertEquals(expected,actual);
+        final String actual = task.convertRgbArrayToHexColor(new int[]{10, 11, 12});
+        final String expected = "#ABC";
+        assertEquals(expected, actual);
     }
-
 
 
     private void retrieveReferenceImage() throws Exception {
