@@ -28,6 +28,9 @@ import static java.lang.String.format;
 public class ImageProcessor {
 
     private final int timeout;
+    private final int colorCount;
+    private final int quality;
+    private final boolean ignoreWhite;
     @NonNull
     private final String imageListUrl;
     @NonNull
@@ -123,6 +126,9 @@ public class ImageProcessor {
             .submit(
                 ProcessingTask.builder()
                     .imageUrl(url)
+                    .colorCount(colorCount)
+                    .quality(quality)
+                    .ignoreWhite(ignoreWhite)
                     .build()
             );
 
@@ -130,8 +136,8 @@ public class ImageProcessor {
     }
 
     private void collectResults() {
-        try {
-            while (true) {
+        while (true) {
+            try {
                 final Future<String[]> take =
                     completionService.poll(timeout, TimeUnit.SECONDS);
                 if (take == null) {
@@ -139,11 +145,11 @@ public class ImageProcessor {
                 }
                 final String[] results = take.get();
                 recordResults(results);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
         }
-        System.out.printf("recorded %d records\n", recordsCount);
+        System.out.printf("processed %d records\n", recordsCount);
     }
 
 

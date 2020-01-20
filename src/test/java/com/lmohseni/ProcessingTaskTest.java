@@ -23,7 +23,7 @@ public class ProcessingTaskTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        task = new ProcessingTask(imageUrl);
+        task = new ProcessingTask(imageUrl, 3, 5, true);
 
         referenceImage = new File(
             Objects.requireNonNull(getClass().getClassLoader().getResource("test-image.jpg"))
@@ -43,9 +43,9 @@ public class ProcessingTaskTest {
     public void call() {
         final String[] expected = {
             "http://i.imgur.com/TKLs9lo.jpg",
-            "#F1F0F0",
-            "#3D4658",
-            "#D62C35"
+            "#D9D8D6",
+            "#3D4557",
+            "#C33941"
         };
         final String[] actual = task.call();
         assertArrayEquals(expected, actual);
@@ -63,13 +63,18 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        new ProcessingTask(null);
+        final BufferedImage image = ProcessingTask.builder()
+            .imageUrl(null)
+            .build()
+            .downloadImage();
     }
 
     @Test
     public void downloadImageInvalidUrl() {
-        final ProcessingTask task = new ProcessingTask("invalidUrl");
-        task.downloadImage();
+        final BufferedImage image = ProcessingTask.builder()
+            .imageUrl("invalidUrl")
+            .build()
+            .downloadImage();
     }
 
     @Test

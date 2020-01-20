@@ -19,13 +19,21 @@ public class ProcessingTask implements Callable<String[]> {
 
     @NonNull
     private final String imageUrl;
+    private final int colorCount;
+    private final int quality;
+    private final boolean ignoreWhite;
 
     @Override
     public String[] call() {
 
         final BufferedImage image = downloadImage();
         if (image != null) {
-            final int[][] palette = ColorThief.getPalette(image, 3, 10, false);
+            final int[][] palette = ColorThief.getPalette(
+                image,
+                colorCount,
+                quality,
+                ignoreWhite
+            );
             String color1 = convertRgbArrayToHexColor(palette[0]);
             String color2 = convertRgbArrayToHexColor(palette[1]);
             String color3 = convertRgbArrayToHexColor(palette[2]);
@@ -36,12 +44,13 @@ public class ProcessingTask implements Callable<String[]> {
     }
 
     private String convertRgbArrayToHexColor(int[] rgb) {
-        String redHex = Integer.toHexString(rgb[0]);
-        String blueHex = Integer.toHexString(rgb[1]);
-        String greenHex = Integer.toHexString(rgb[2]);
 
-        final String result = "#" + redHex + blueHex + greenHex;
-        return result.toUpperCase();
+        return String.format(
+            "#%s%s%s",
+            Integer.toHexString(rgb[0]),
+            Integer.toHexString(rgb[1]),
+            Integer.toHexString(rgb[2])
+        ).toUpperCase();
     }
 
 
