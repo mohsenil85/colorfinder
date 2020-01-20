@@ -13,7 +13,7 @@ public class App {
 
         ImageProcessor.builder() //uses lombok.Builder
 
-            .timeout(3) //idle seconds to wait before shutting down
+            .timeout(1) //idle seconds to wait before shutting down
 
             .colorCount(3) //per spec
 

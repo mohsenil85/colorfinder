@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class ImageProcessorTest {
@@ -13,6 +14,9 @@ public class ImageProcessorTest {
 
     @Mock
     private ExecutorService executorService;
+
+    @Mock
+    private Map<String,String[]> localCache;
 
 
     @Before
@@ -25,6 +29,7 @@ public class ImageProcessorTest {
             .imageListUrl("file:./src/test/resources/test-list.txt")
             .outputFilePath("./src/test/resources/test-results.csv")
             .executorService(executorService)
+            .localCache(localCache)
             .build();
 
     }

@@ -68,7 +68,7 @@ public class ProcessingTaskTest {
 
     @Test(expected = java.lang.IllegalArgumentException.class)
     public void downloadImageNullUrl() {
-        final BufferedImage image = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl(null)
             .build()
             .downloadImage();
@@ -76,16 +76,18 @@ public class ProcessingTaskTest {
 
     @Test
     public void downloadImageInvalidUrl() {
-        final BufferedImage image = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl("invalidUrl")
+            .localCache(map)
             .build()
             .downloadImage();
     }
 
     @Test
     public void getColorOccurrences() {
-        final BufferedImage image = ProcessingTask.builder()
+        ProcessingTask.builder()
             .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
+            .localCache(map)
             .build()
             .downloadImage();
     }

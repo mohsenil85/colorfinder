@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.Map;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -60,9 +61,10 @@ public class ImageProcessor {
         cleanUp();
 
         final Instant finish = Instant.now();
+        final int duration = Duration.between(start, finish).getNano();
+        long durationInMs = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
         System.out.printf(
-            "execution time: %s seconds\n",
-            Duration.between(start, finish).getSeconds()
+            "execution time: %s ms\n", durationInMs
         );
 
     }

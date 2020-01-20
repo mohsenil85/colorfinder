@@ -10,11 +10,13 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Fork(value = 2, jvmArgs = {"-Xms8G", "-Xmx12G"}, warmups = 2)
-@OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 @BenchmarkMode(Mode.All)
 @Warmup(iterations = 2)
 @Measurement(iterations = 10)
@@ -33,6 +35,7 @@ public class BenchmarkTest {
         static int colorCount = 3;
         static int quality = 50;
         static boolean ignoreWhite = false;
+        static Map<String,String[]> localCache = new ConcurrentHashMap<>();
 
     }
 
@@ -48,6 +51,7 @@ public class BenchmarkTest {
     public void BenchProcessingTasks() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .localCache(Scope.localCache)
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
@@ -61,6 +65,7 @@ public class BenchmarkTest {
     public void testProcessingTask10() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .localCache(Scope.localCache)
             .colorCount(Scope.colorCount)
             .quality(10)
             .ignoreWhite(Scope.ignoreWhite)
@@ -74,6 +79,7 @@ public class BenchmarkTest {
     public void testProcessingTask30() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
+            .localCache(Scope.localCache)
             .colorCount(Scope.colorCount)
             .quality(30)
             .ignoreWhite(Scope.ignoreWhite)
@@ -91,6 +97,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.localUrl)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
@@ -107,6 +114,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.localUrl)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
@@ -123,6 +131,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.localUrl)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
@@ -139,6 +148,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.localUrl)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
@@ -155,6 +165,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
@@ -171,6 +182,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(25))
             .build()
@@ -187,7 +199,9 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
+            .localCache(Scope.localCache)
             .executorService(Executors.newWorkStealingPool(200))
             .build()
 
@@ -203,6 +217,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(1000))
             .build()
@@ -219,6 +234,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
@@ -235,6 +251,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(200))
             .build()
@@ -251,6 +268,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(1000))
             .build()
@@ -267,6 +285,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
@@ -283,6 +302,7 @@ public class BenchmarkTest {
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
             .imageListUrl(Scope.github)
+            .localCache(Scope.localCache)
             .outputFilePath(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
