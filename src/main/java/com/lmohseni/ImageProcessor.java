@@ -67,9 +67,9 @@ public class ImageProcessor {
         cleanUp();
 
         Instant end = Instant.now();
-        final int duration = Duration.between(start, end).getNano();
-        long ms = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
-        System.out.printf("execution time: %s ms%n", ms);
+        System.out.printf(
+            "execution time: %s ms%n", Duration.between(start, end).toMillis()
+        );
         System.out.printf("drop list length: %d %n", dropList.size());
 
     }
