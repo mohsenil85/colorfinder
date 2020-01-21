@@ -28,19 +28,20 @@ public class ProcessingTask implements Callable<String[]> {
     private final boolean ignoreWhite;
 
     @NonNull
-    private final Map<String, String[]> localCache;
+    private final Map<String, String[]> cache;
     @NonNull
-    private final Set<String> ignoreList;
+    private final Set<String> dropList;
 
 
     @Override
     public String[] call() {
-        final String[] localResult = localCache.get(imageUrl);
-        if (localResult != null) {
-            return localResult;
+
+        final String[] cached = cache.get(imageUrl);
+        if (cached != null) {
+            return cached;
         }
 
-        if (ignoreList.contains(imageUrl)) {
+        if (dropList.contains(imageUrl)) {
             return null;
         }
 
@@ -59,7 +60,7 @@ public class ProcessingTask implements Callable<String[]> {
             String color3 = convertRgbArrayToHexColor(palette[2]);
 
             final String[] result = {imageUrl, color1, color2, color3};
-            localCache.put(imageUrl, result);
+            cache.put(imageUrl, result);
             return result;
         }
 
@@ -87,11 +88,11 @@ public class ProcessingTask implements Callable<String[]> {
             return bufferedImage;
 
         } catch (FileNotFoundException e) {
-            System.out.printf("adding %s to ignore list\n", imageUrl);
-            ignoreList.add(imageUrl);
+            System.out.printf("adding %s to ignore list%n", imageUrl);
+            dropList.add(imageUrl);
         } catch (MalformedURLException e) {
             System.out.printf("malformed url: %s", imageUrl);
-            ignoreList.add(imageUrl);
+            dropList.add(imageUrl);
         } catch (IOException e) {
             System.out.printf("error : %s", e.getMessage());
         }

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @Fork(value = 2, jvmArgs = {"-Xms8G", "-Xmx12G"}, warmups = 2)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @BenchmarkMode(Mode.All)
-@Warmup(iterations = 2)
+@Warmup(iterations = 3)
 @Measurement(iterations = 10)
 public class BenchmarkTest {
 
@@ -36,8 +36,8 @@ public class BenchmarkTest {
         static int colorCount = 3;
         static int quality = 50;
         static boolean ignoreWhite = false;
-        static Map<String,String[]> localCache = new ConcurrentHashMap<>();
-        static Set<String> ignoreList = ConcurrentHashMap.newKeySet();
+        static Map<String,String[]> cache = new ConcurrentHashMap<>();
+        static Set<String> dropList = ConcurrentHashMap.newKeySet();
 
     }
 
@@ -53,10 +53,10 @@ public class BenchmarkTest {
     public void BenchProcessingTasks() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .localCache(Scope.localCache)
+            .cache(Scope.cache)
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
-            .ignoreList(Scope.ignoreList)
+            .dropList(Scope.dropList)
             .ignoreWhite(Scope.ignoreWhite)
             .build()
 
@@ -68,11 +68,11 @@ public class BenchmarkTest {
     public void testProcessingTask10() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .localCache(Scope.localCache)
+            .cache(Scope.cache)
             .colorCount(Scope.colorCount)
             .quality(10)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
+            .dropList(Scope.dropList)
             .build()
 
             .call();
@@ -83,11 +83,11 @@ public class BenchmarkTest {
     public void testProcessingTask30() {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .localCache(Scope.localCache)
+            .cache(Scope.cache)
             .colorCount(Scope.colorCount)
             .quality(30)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
+            .dropList(Scope.dropList)
             .build()
 
             .call();
@@ -101,10 +101,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.localUrl)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.localUrl)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
 
@@ -119,10 +119,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.localUrl)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.localUrl)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
 
@@ -137,10 +137,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.localUrl)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.localUrl)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
 
@@ -155,10 +155,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.localUrl)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.localUrl)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
 
@@ -173,10 +173,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
 
@@ -191,10 +191,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(25))
             .build()
 
@@ -209,11 +209,11 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
-            .localCache(Scope.localCache)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
+            .cache(Scope.cache)
             .executorService(Executors.newWorkStealingPool(200))
             .build()
 
@@ -228,10 +228,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(1000))
             .build()
 
@@ -246,10 +246,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
 
@@ -264,10 +264,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(200))
             .build()
 
@@ -282,10 +282,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(1000))
             .build()
 
@@ -300,10 +300,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
 
@@ -318,10 +318,10 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .ignoreList(Scope.ignoreList)
-            .imageListUrl(Scope.github)
-            .localCache(Scope.localCache)
-            .outputFilePath(Scope.testOutput)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(Scope.cache)
+            .outputFile(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
 

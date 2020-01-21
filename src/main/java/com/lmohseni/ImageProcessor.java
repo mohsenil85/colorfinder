@@ -3,6 +3,7 @@ package com.lmohseni;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,26 +35,29 @@ public class ImageProcessor {
     private final int quality;
     private final boolean ignoreWhite;
     @NonNull
-    private final String imageListUrl;
+    private final String inputFile;
     @NonNull
-    private final String outputFilePath;
+    private final String outputFile;
     @NonNull
     private final ExecutorService executorService;
     @NonNull
-    private final Map<String, String[]> localCache;
+    private final Map<String, String[]> cache;
     @NonNull
-    private final Set<String> ignoreList;
+    private final Set<String> dropList;
 
-    CompletionService<String[]> completionService;
-    URL imagesUrl;
-    BufferedReader reader;
-    BufferedWriter writer;
-    int recordsCount;
+    @Setter
+    private CompletionService<String[]> completionService;
+    @Setter
+    private BufferedReader reader;
+    @Setter
+    private BufferedWriter writer;
+
+    private int recordsCount;
 
 
     public void processAllImages() {
 
-        final Instant start = Instant.now();
+        Instant start = Instant.now();
 
         initialize();
         reader
@@ -62,15 +66,17 @@ public class ImageProcessor {
         collectResults();
         cleanUp();
 
-        final Instant finish = Instant.now();
-        final int duration = Duration.between(start, finish).getNano();
+        Instant end = Instant.now();
+        final int duration = Duration.between(start, end).getNano();
         long ms = TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS);
-        System.out.printf("execution time: %s ms\n", ms);
-        System.out.printf("drop list length: %d \n", ignoreList.size());
+        System.out.printf("execution time: %s ms%n", ms);
+        System.out.printf("drop list length: %d %n", dropList.size());
 
     }
 
     private void initialize() {
+
+        final URL imagesUrl;
 
         try {
 
@@ -78,23 +84,23 @@ public class ImageProcessor {
                 executorService);
 
             try {
-                imagesUrl = new URL(imageListUrl);
+                imagesUrl = new URL(inputFile);
             } catch (MalformedURLException e) {
-                throw new IllegalStateException("could not create a url from: " + imageListUrl);
+                throw new IllegalStateException("could not create a url from: " + inputFile);
             }
 
             try {
                 reader = new BufferedReader(
                     new InputStreamReader(imagesUrl.openStream()));
             } catch (IOException e) {
-                throw new IllegalStateException("could not read from: " + imageListUrl);
+                throw new IllegalStateException("could not read from: " + inputFile);
             }
 
             try {
                 writer = new BufferedWriter(
-                    new FileWriter(new File(outputFilePath)));
+                    new FileWriter(new File(outputFile)));
             } catch (IOException e) {
-                throw new IllegalStateException("could not write at: " + outputFilePath);
+                throw new IllegalStateException("could not write at: " + outputFile);
             }
 
         } catch (IllegalStateException e) {
@@ -104,7 +110,7 @@ public class ImageProcessor {
 
     private void launchThread(String url) {
 
-        System.out.printf("launching a thread for %s\n", url);
+        System.out.printf("launching a thread for %s%n", url);
 
         completionService.submit(
             ProcessingTask.builder()
@@ -112,8 +118,8 @@ public class ImageProcessor {
                 .colorCount(colorCount)
                 .quality(quality)
                 .ignoreWhite(ignoreWhite)
-                .localCache(localCache)
-                .ignoreList(ignoreList)
+                .cache(cache)
+                .dropList(dropList)
                 .build()
         );
     }
@@ -123,25 +129,26 @@ public class ImageProcessor {
         while (true) {
             try {
 
-                final Future<String[]> take =
+                final Future<String[]> future =
                     completionService.poll(timeout, TimeUnit.SECONDS);
                 //blocking call, will return null after `timeout` seconds
 
-                if (take == null) {
+                if (future == null) {
                     //if we reach the timeout, it means the completion service
-                    // is done receiving results, so exit out if the loop
+                    // is done receiving results, so exit the loop
                     break;
                 }
 
                 //unwrap future
-                recordResults(take.get());
+                recordResults(future.get());
 
             } catch (InterruptedException | ExecutionException e) {
+                //need to catch these inside the loop
                 System.out.println(e.getMessage());
             }
         }
 
-        System.out.printf("processed %d records\n", recordsCount);
+        System.out.printf("processed %d records%n", recordsCount);
     }
 
     private void recordResults(String[] strings) {
@@ -149,8 +156,8 @@ public class ImageProcessor {
         try {
 
             if (strings != null) {
-                final String result = format("%s,%s,%s,%s\n", strings);
-                System.out.printf("recording result:\n%s\n", result);
+                final String result = format("%s,%s,%s,%s%n", strings);
+                System.out.printf("recording result:%n%s%n", result);
                 writer.write(result);
                 writer.flush();
                 //flush after each write so that if we get
@@ -175,6 +182,7 @@ public class ImageProcessor {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+
     }
 
 }

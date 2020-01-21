@@ -23,10 +23,10 @@ public class ProcessingTaskTest {
     File referenceImage;
 
     @Mock
-    Map<String, String[]> localCache;
+    Map<String, String[]> cache;
 
     @Mock
-    Set<String> ignoreList;
+    Set<String> dropList;
 
     @Before
     public void setup() {
@@ -37,8 +37,8 @@ public class ProcessingTaskTest {
             .colorCount(3)
             .quality(5)
             .ignoreWhite(false)
-            .localCache(localCache)
-            .ignoreList(ignoreList)
+            .cache(cache)
+            .dropList(dropList)
             .build();
 
         referenceImage = new File(
@@ -89,8 +89,8 @@ public class ProcessingTaskTest {
     public void downloadImageInvalidUrl() {
         ProcessingTask.builder()
             .imageUrl("invalidUrl")
-            .localCache(localCache)
-            .ignoreList(ignoreList)
+            .cache(cache)
+            .dropList(dropList)
             .build()
             .downloadImage();
     }
@@ -99,8 +99,8 @@ public class ProcessingTaskTest {
     public void downloadImageTroublesomeUrl() {
         ProcessingTask.builder()
             .imageUrl("https://i.redd.it/nrafqoujmety.jpg")
-            .localCache(localCache)
-            .ignoreList(ignoreList)
+            .cache(cache)
+            .dropList(dropList)
             .build()
             .downloadImage();
     }
@@ -110,8 +110,8 @@ public class ProcessingTaskTest {
     public void getColorOccurrences() {
         ProcessingTask.builder()
             .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
-            .localCache(localCache)
-            .ignoreList(ignoreList)
+            .cache(cache)
+            .dropList(dropList)
             .build()
             .downloadImage();
     }
