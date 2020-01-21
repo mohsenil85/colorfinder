@@ -50,7 +50,7 @@ public class BenchmarkTest {
 
     @Benchmark
     @Test
-    public void BenchProcessingTasks() {
+    public void BenchProcessingTasks() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .cache(Scope.cache)
@@ -65,7 +65,7 @@ public class BenchmarkTest {
 
     @Benchmark
     @Test
-    public void testProcessingTask10() {
+    public void testProcessingTask10() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .cache(Scope.cache)
@@ -80,7 +80,7 @@ public class BenchmarkTest {
 
     @Benchmark
     @Test
-    public void testProcessingTask30() {
+    public void testProcessingTask30() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
             .cache(Scope.cache)
@@ -222,7 +222,7 @@ public class BenchmarkTest {
 
     @Benchmark
     @Test
-    public void testImageProcessorForkJoinRemote1000() {
+    public void testImageProcessorForkJoinRemote5() {
         ImageProcessor.builder()
             .timeout(Scope.timeout)
             .colorCount(Scope.colorCount)
@@ -232,7 +232,7 @@ public class BenchmarkTest {
             .inputFile(Scope.github)
             .cache(Scope.cache)
             .outputFile(Scope.testOutput)
-            .executorService(Executors.newWorkStealingPool(1000))
+            .executorService(Executors.newWorkStealingPool(5))
             .build()
 
             .processAllImages();

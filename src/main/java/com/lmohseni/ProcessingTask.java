@@ -34,7 +34,7 @@ public class ProcessingTask implements Callable<String[]> {
 
 
     @Override
-    public String[] call() {
+    public String[] call() throws InterruptedException {
 
         final String[] cached = cache.get(imageUrl);
         if (cached != null) {
@@ -42,7 +42,7 @@ public class ProcessingTask implements Callable<String[]> {
         }
 
         if (dropList.contains(imageUrl)) {
-            return null;
+            throw  new InterruptedException("dropping url: " + imageUrl);
         }
 
         final BufferedImage image = downloadImage();
@@ -62,9 +62,11 @@ public class ProcessingTask implements Callable<String[]> {
             final String[] result = {imageUrl, color1, color2, color3};
             cache.put(imageUrl, result);
             return result;
+        } else {
+
+            throw  new InterruptedException("got a null image!");
         }
 
-        return null;
     }
 
     String convertRgbArrayToHexColor(int[] rgb) {

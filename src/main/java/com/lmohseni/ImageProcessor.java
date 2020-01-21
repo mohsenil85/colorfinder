@@ -24,8 +24,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
-
 @Data
 @Builder
 public class ImageProcessor {
@@ -53,6 +51,7 @@ public class ImageProcessor {
     private BufferedWriter writer;
 
     private int recordsCount;
+    private StringBuffer sb;
 
 
     public void processAllImages() {
@@ -68,7 +67,7 @@ public class ImageProcessor {
 
         Instant end = Instant.now();
         System.out.printf(
-            "execution time: %s ms%n", Duration.between(start, end).toMillis()
+            "execution time: %s s%n", Duration.between(start, end).getSeconds()
         );
         System.out.printf("drop list length: %d %n", dropList.size());
 
@@ -78,34 +77,31 @@ public class ImageProcessor {
 
         final URL imagesUrl;
 
+        sb = new StringBuffer();
+
+        completionService = new ExecutorCompletionService<>(
+            executorService);
+
         try {
-
-            completionService = new ExecutorCompletionService<>(
-                executorService);
-
-            try {
-                imagesUrl = new URL(inputFile);
-            } catch (MalformedURLException e) {
-                throw new IllegalStateException("could not create a url from: " + inputFile);
-            }
-
-            try {
-                reader = new BufferedReader(
-                    new InputStreamReader(imagesUrl.openStream()));
-            } catch (IOException e) {
-                throw new IllegalStateException("could not read from: " + inputFile);
-            }
-
-            try {
-                writer = new BufferedWriter(
-                    new FileWriter(new File(outputFile)));
-            } catch (IOException e) {
-                throw new IllegalStateException("could not write at: " + outputFile);
-            }
-
-        } catch (IllegalStateException e) {
-            System.out.println(e.getMessage());
+            imagesUrl = new URL(inputFile);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("could not create a url from: " + inputFile);
         }
+
+        try {
+            reader = new BufferedReader(
+                new InputStreamReader(imagesUrl.openStream()));
+        } catch (IOException e) {
+            throw new RuntimeException("could not read from: " + inputFile);
+        }
+
+        try {
+            writer = new BufferedWriter(
+                new FileWriter(new File(outputFile)));
+        } catch (IOException e) {
+            throw new RuntimeException("could not write at: " + outputFile);
+        }
+
     }
 
     private void launchThread(String url) {
@@ -153,27 +149,20 @@ public class ImageProcessor {
 
     private void recordResults(String[] strings) {
 
-        try {
+//        System.out.printf("recording : %s,%s,%s,%s%n ", strings);
+        sb.append(String.format("%s,%s,%s,%s%n", strings));
+        recordsCount++;
 
-            if (strings != null) {
-                final String result = format("%s,%s,%s,%s%n", strings);
-                System.out.printf("recording result:%n%s%n", result);
-                writer.write(result);
-                writer.flush();
-                //flush after each write so that if we get
-                // interrupted, we still can save all the
-                // results collected so far
-                recordsCount++;
-            }
-
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     private void cleanUp() {
 
         try {
+            writer.write(sb.toString());
+            writer.flush();
+            //flush after each write so that if we get
+            // interrupted, we still can save all the
+            // results collected so far
 
             executorService.shutdownNow();
             reader.close();

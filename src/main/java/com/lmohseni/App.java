@@ -1,8 +1,6 @@
 package com.lmohseni;
 
 
-import org.openjdk.jmh.annotations.Benchmark;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
@@ -31,7 +29,7 @@ public class App {
             ) //where to print the results
 
             .executorService(
-                Executors.newWorkStealingPool()
+                Executors.newWorkStealingPool(5)
             ) //threading strategy to use (see benchmarks)
 
             .cache(new ConcurrentHashMap<>())

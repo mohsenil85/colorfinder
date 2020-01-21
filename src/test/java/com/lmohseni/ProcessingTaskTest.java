@@ -56,7 +56,7 @@ public class ProcessingTaskTest {
     }
 
     @Test
-    public void call() {
+    public void call() throws InterruptedException {
         final String[] expected = {
             "http://i.imgur.com/TKLs9lo.jpg",
             "#F1F0F0",
