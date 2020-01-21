@@ -11,30 +11,32 @@ public class App {
         final String inputFile =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
 
-        ImageProcessor.builder() //uses lombok.Builder
+        ImageProcessor.builder()
 
-            .timeout(3) //idle seconds to wait before shutdown
+            //idle seconds to wait before shutdown
+            .timeout(3)
 
-            .colorCount(3) //per spec
+            //per spec
+            .colorCount(3)
 
-            .quality(10) //tune fidelity vs speed
-
+            //tune fidelity vs speed
+            .quality(10)
             .ignoreWhite(true)
 
-            .inputFile(inputFile) //url pointing to list of images
-                                     // (for a local file, use a path like
-                                     // 'file:./some/local.csv')
-            .outputFile(
-                "./target/results.csv"
-            ) //where to print the results
+            //url pointing to list of images
+            // (for a local file, use a path like 'file:./some/local.csv')
+            .inputFile(inputFile)
 
-            .executorService(
-                Executors.newWorkStealingPool(5)
-            ) //threading strategy to use (see benchmarks)
+            //where to print the results
+            .outputFile("./target/results.csv")
 
-            .cache(new ConcurrentHashMap<>())
+            //threading strategy to use (see benchmarks)
+            .executorService(Executors.newWorkStealingPool())
+
             //use memoization
+            .cache(new ConcurrentHashMap<>())
 
+            //don't retry bad operations
             .dropList(ConcurrentHashMap.newKeySet())
 
             .build()
