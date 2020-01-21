@@ -52,6 +52,7 @@ public class ImageProcessor {
     private BufferedWriter writer;
 
     private int recordsCount;
+    private StringBuffer sb;
 
     public void processAllImages() {
 
@@ -75,6 +76,7 @@ public class ImageProcessor {
     private void initialize() {
 
         final URL imagesUrl;
+        sb = new StringBuffer();
 
         completionService = new ExecutorCompletionService<>(
             executorService);
@@ -148,11 +150,8 @@ public class ImageProcessor {
     private void recordResults(String[] strings) {
 
         System.out.printf("recording : %s %s,%s,%s%n ", strings);
-        writer.write(String.format("%s,%s,%s,%s%n", strings));
-        writer.flush();
-        //flush after each write so that if we get
-        // interrupted, we still can save all the
-        // results collected so far
+
+        sb.append(String.format("%s,%s,%s,%s%n", strings));
         recordsCount++;
 
     }
@@ -160,6 +159,8 @@ public class ImageProcessor {
     @SneakyThrows
     private void cleanUp() {
 
+        writer.write(sb.toString());
+        writer.flush();
         executorService.shutdownNow();
         reader.close();
         writer.close();
