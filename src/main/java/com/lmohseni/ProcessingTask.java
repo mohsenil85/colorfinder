@@ -40,6 +40,7 @@ public class ProcessingTask implements Runnable {
 
     @Override
     public void run() {
+        System.out.printf("%s ", Thread.currentThread().getName());
 
         if (dropList.contains(imageUrl)) {
             System.out.printf("ignoring %s%n", imageUrl);
@@ -55,15 +56,28 @@ public class ProcessingTask implements Runnable {
             return;
         }
 
-        final BufferedImage image;
-        try {
-            image = downloadImage();
-        } catch (IllegalThreadStateException e) {
-            System.out.printf("error %s%n", e.getMessage());
+        final BufferedImage image = downloadImage();
+
+        if (null == image) {
+            System.out.printf("problem with: %s%n", imageUrl);
             latch.countDown();
             return;
         }
 
+        StringBuilder result = constructResult(image);
+
+        latch.countDown();
+        buffer.append(result);
+
+        System.out.printf("recorded %s", result.toString());
+
+        Thread.currentThread().interrupt();
+
+
+    }
+
+    private StringBuilder constructResult(BufferedImage image) {
+        final StringBuilder result = new StringBuilder();
         final int[][] palette = ColorThief.getPalette(
             image,
             colorCount,
@@ -71,20 +85,15 @@ public class ProcessingTask implements Runnable {
             ignoreWhite
         );
 
-        StringBuilder result = new StringBuilder().append(imageUrl);
+        result.append(imageUrl);
 
         for (int i = 0; i < colorCount; i++) {
             result.append(",");
             result.append(convertRgbArrayToHexColor(palette[i]));
         }
         result.append("\n");
-
-        buffer.append(result);
         cache.put(imageUrl, result);
-        System.out.printf("recorded %s", result.toString());
-        latch.countDown();
-
-
+        return result;
     }
 
     String convertRgbArrayToHexColor(int[] rgb) {
@@ -116,7 +125,7 @@ public class ProcessingTask implements Runnable {
         } catch (IOException e) {
             System.out.printf("error : %s%n", e.getMessage());
         }
-        throw new IllegalThreadStateException("problem with " + imageUrl);
+        return null;
     }
 
 

@@ -31,7 +31,7 @@ public class BenchmarkTest {
         static String github =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
         static String testOutput = "./target/results.csv";
-        static int timeout = 3;
+        static int timeout = 5;
         static int nThreads = 10;
         static int colorCount = 3;
         static int quality = 50;
@@ -42,12 +42,12 @@ public class BenchmarkTest {
 
     }
 
-    public static class BenchmarkRunner {
-
-        public static void main(String[] args) throws Exception {
-            org.openjdk.jmh.Main.main(args);
-        }
-    }
+//    public static class BenchmarkRunner {
+//
+//        public static void main(String[] args) throws Exception {
+//            org.openjdk.jmh.Main.main(args);
+//        }
+//    }
 
     @Benchmark
     @Test

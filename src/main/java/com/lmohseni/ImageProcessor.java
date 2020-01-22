@@ -50,6 +50,7 @@ public class ImageProcessor {
 
     public void processAllImages() {
 
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         Instant start = Instant.now();
 
         initialize();
