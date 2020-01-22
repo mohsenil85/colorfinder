@@ -21,7 +21,7 @@ public class ImageProcessorTest {
     private ExecutorService executorService;
 
     @Mock
-    private Map<String, String[]> cache;
+    private Map<String, StringBuilder> cache;
 
     @Mock
     private Set<String> dropList;
@@ -38,7 +38,7 @@ public class ImageProcessorTest {
         MockitoAnnotations.initMocks(this);
 
         imageProcessor = ImageProcessor.builder()
-            .timeout(5)
+            .timeout(1)
             .inputFile(inputFile)
             .outputFile(outputFile)
             .executorService(executorService)

@@ -10,20 +10,20 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 2, jvmArgs = {"-Xms8G", "-Xmx12G"}, warmups = 2)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Fork(value = 1, jvmArgs = {"-Xms8G", "-Xmx12G"}, warmups = 1)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @BenchmarkMode(Mode.All)
-@Warmup(iterations = 3)
-@Measurement(iterations = 10)
+@Warmup(iterations = 1)
+@Measurement(iterations = 3)
 public class BenchmarkTest {
 
-    @State(org.openjdk.jmh.annotations.Scope.Thread)
+    @State(org.openjdk.jmh.annotations.Scope.Benchmark)
     static class Scope {
 
         static String imageUrl = "https://i.redd.it/ftd3sx5ah13z.jpg";
@@ -36,8 +36,9 @@ public class BenchmarkTest {
         static int colorCount = 3;
         static int quality = 50;
         static boolean ignoreWhite = false;
-        static Map<String,String[]> cache = new ConcurrentHashMap<>();
         static Set<String> dropList = ConcurrentHashMap.newKeySet();
+        static CountDownLatch latch = new CountDownLatch(10);
+        static StringBuffer buffer = new StringBuffer();
 
     }
 
@@ -53,14 +54,16 @@ public class BenchmarkTest {
     public void BenchProcessingTasks() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .dropList(Scope.dropList)
             .ignoreWhite(Scope.ignoreWhite)
+            .latch(Scope.latch)
+            .buffer(Scope.buffer)
             .build()
 
-            .call();
+            .run();
     }
 
     @Benchmark
@@ -68,14 +71,16 @@ public class BenchmarkTest {
     public void testProcessingTask10() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .colorCount(Scope.colorCount)
             .quality(10)
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
+            .latch(Scope.latch)
+            .buffer(Scope.buffer)
             .build()
 
-            .call();
+            .run();
     }
 
     @Benchmark
@@ -83,14 +88,16 @@ public class BenchmarkTest {
     public void testProcessingTask30() throws InterruptedException {
         ProcessingTask.builder()
             .imageUrl(Scope.imageUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .colorCount(Scope.colorCount)
             .quality(30)
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
+            .latch(Scope.latch)
+            .buffer(Scope.buffer)
             .build()
 
-            .call();
+            .run();
     }
 
     @Benchmark
@@ -103,7 +110,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.localUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
@@ -121,7 +128,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.localUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
             .build()
@@ -139,7 +146,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.localUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()
@@ -157,7 +164,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.localUrl)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
@@ -173,9 +180,9 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .ignoreWhite(Scope.ignoreWhite)
-            .dropList(Scope.dropList)
+            .dropList(ConcurrentHashMap.newKeySet())
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool())
             .build()
@@ -193,28 +200,9 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(25))
-            .build()
-
-            .processAllImages();
-    }
-
-    @Benchmark
-    @Test
-    public void testImageProcessorForkJoinRemote200() {
-        ImageProcessor.builder()
-            .timeout(Scope.timeout)
-            .colorCount(Scope.colorCount)
-            .quality(Scope.quality)
-            .ignoreWhite(Scope.ignoreWhite)
-            .dropList(Scope.dropList)
-            .inputFile(Scope.github)
-            .cache(Scope.cache)
-            .outputFile(Scope.testOutput)
-            .cache(Scope.cache)
-            .executorService(Executors.newWorkStealingPool(200))
             .build()
 
             .processAllImages();
@@ -230,9 +218,46 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newWorkStealingPool(5))
+            .build()
+
+            .processAllImages();
+    }
+
+    @Benchmark
+    @Test
+    public void testImageProcessorFixedRuntimeAvailableProcessors() {
+        ImageProcessor.builder()
+            .timeout(Scope.timeout)
+            .colorCount(Scope.colorCount)
+            .quality(Scope.quality)
+            .ignoreWhite(Scope.ignoreWhite)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(new ConcurrentHashMap<>())
+            .outputFile(Scope.testOutput)
+            .executorService(
+                Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1))
+            .build()
+
+            .processAllImages();
+    }
+
+    @Benchmark
+    @Test
+    public void testImageProcessorFixedRemote3() {
+        ImageProcessor.builder()
+            .timeout(Scope.timeout)
+            .colorCount(Scope.colorCount)
+            .quality(Scope.quality)
+            .ignoreWhite(Scope.ignoreWhite)
+            .dropList(Scope.dropList)
+            .inputFile(Scope.github)
+            .cache(new ConcurrentHashMap<>())
+            .outputFile(Scope.testOutput)
+            .executorService(Executors.newFixedThreadPool(3))
             .build()
 
             .processAllImages();
@@ -248,45 +273,9 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newFixedThreadPool(Scope.nThreads))
-            .build()
-
-            .processAllImages();
-    }
-
-    @Benchmark
-    @Test
-    public void testImageProcessorFixedRemote200() {
-        ImageProcessor.builder()
-            .timeout(Scope.timeout)
-            .colorCount(Scope.colorCount)
-            .quality(Scope.quality)
-            .ignoreWhite(Scope.ignoreWhite)
-            .dropList(Scope.dropList)
-            .inputFile(Scope.github)
-            .cache(Scope.cache)
-            .outputFile(Scope.testOutput)
-            .executorService(Executors.newFixedThreadPool(200))
-            .build()
-
-            .processAllImages();
-    }
-
-    @Benchmark
-    @Test
-    public void testImageProcessorFixedRemote100() {
-        ImageProcessor.builder()
-            .timeout(Scope.timeout)
-            .colorCount(Scope.colorCount)
-            .quality(Scope.quality)
-            .ignoreWhite(Scope.ignoreWhite)
-            .dropList(Scope.dropList)
-            .inputFile(Scope.github)
-            .cache(Scope.cache)
-            .outputFile(Scope.testOutput)
-            .executorService(Executors.newFixedThreadPool(1000))
             .build()
 
             .processAllImages();
@@ -302,7 +291,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newCachedThreadPool())
             .build()
@@ -320,7 +309,7 @@ public class BenchmarkTest {
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
             .inputFile(Scope.github)
-            .cache(Scope.cache)
+            .cache(new ConcurrentHashMap<>())
             .outputFile(Scope.testOutput)
             .executorService(Executors.newSingleThreadExecutor())
             .build()

@@ -3,7 +3,6 @@ package com.lmohseni;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
@@ -16,14 +15,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -40,30 +38,31 @@ public class ImageProcessor {
     @NonNull
     private final ExecutorService executorService;
     @NonNull
-    private final Map<String, String[]> cache;
+    private final Map<String, StringBuilder> cache;
     @NonNull
     private final Set<String> dropList;
 
-    @Setter
-    private CompletionService<String[]> completionService;
-    @Setter
     private BufferedReader reader;
-    @Setter
     private BufferedWriter writer;
 
     private int recordsCount;
-    private StringBuffer sb;
+    private StringBuffer buffer;
 
     public void processAllImages() {
 
         Instant start = Instant.now();
 
         initialize();
-        reader
-            .lines()
-            .forEach(url -> launchThread(url));
-        collectResults();
-        cleanUp();
+        final List<String> urls = reader.lines().parallel().collect(Collectors.toList());
+        final CountDownLatch latch = new CountDownLatch(urls.size());
+        urls.parallelStream()
+            .forEach(url -> launchThread(url, latch, buffer));
+        try {
+            latch.await();
+            cleanUp();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         Instant end = Instant.now();
         System.out.printf(
@@ -76,10 +75,7 @@ public class ImageProcessor {
     private void initialize() {
 
         final URL imagesUrl;
-        sb = new StringBuffer();
-
-        completionService = new ExecutorCompletionService<>(
-            executorService);
+        buffer = new StringBuffer();
 
         try {
             imagesUrl = new URL(inputFile);
@@ -103,11 +99,15 @@ public class ImageProcessor {
 
     }
 
-    private void launchThread(String url) {
+    private void launchThread(
+        final String url,
+        final CountDownLatch latch,
+        final StringBuffer buffer
+    ) {
 
-        System.out.printf("launching a thread for %s%n", url);
+        System.out.printf("launching %s%n", url);
 
-        completionService.submit(
+        executorService.submit(
             ProcessingTask.builder()
                 .imageUrl(url)
                 .colorCount(colorCount)
@@ -115,53 +115,22 @@ public class ImageProcessor {
                 .ignoreWhite(ignoreWhite)
                 .cache(cache)
                 .dropList(dropList)
+                .latch(latch)
+                .buffer(buffer)
                 .build()
         );
-    }
-
-    private void collectResults() {
-
-        while (true) {
-            try {
-
-                final Future<String[]> future =
-                    completionService.poll(timeout, TimeUnit.SECONDS);
-                //blocking call, will return null after `timeout` seconds
-
-                if (future == null) {
-                    //if we reach the timeout, it means the completion service
-                    // is done receiving results, so exit the loop
-                    break;
-                }
-
-                //unwrap future
-                recordResults(future.get());
-
-            } catch (InterruptedException | ExecutionException e) {
-                //need to catch these inside the loop
-                System.out.println(e.getMessage());
-            }
-        }
-
-        System.out.printf("processed %d records%n", recordsCount);
-    }
-
-    @SneakyThrows
-    private void recordResults(String[] strings) {
-
-        System.out.printf("recording : %s %s,%s,%s%n ", strings);
-
-        sb.append(String.format("%s,%s,%s,%s%n", strings));
-        recordsCount++;
-
     }
 
     @SneakyThrows
     private void cleanUp() {
 
-        writer.write(sb.toString());
+        executorService.shutdown();
+        writer.write(buffer.toString());
+
+//        Thread.sleep(timeout * 1000);
         writer.flush();
-        executorService.shutdownNow();
+        executorService.awaitTermination(timeout, TimeUnit.SECONDS);
+
         reader.close();
         writer.close();
 

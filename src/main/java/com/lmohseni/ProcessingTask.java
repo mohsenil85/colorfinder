@@ -15,11 +15,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
 @Data
 @Builder
-public class ProcessingTask implements Callable<String[]> {
+public class ProcessingTask implements Runnable {
 
     @NonNull
     private final String imageUrl;
@@ -28,44 +28,62 @@ public class ProcessingTask implements Callable<String[]> {
     private final boolean ignoreWhite;
 
     @NonNull
-    private final Map<String, String[]> cache;
+    private final Map<String, StringBuilder> cache;
     @NonNull
     private final Set<String> dropList;
 
+    @NonNull
+    private final CountDownLatch latch;
+
+    @NonNull
+    private final StringBuffer buffer;
 
     @Override
-    public String[] call() throws InterruptedException {
-
-        final String[] cached = cache.get(imageUrl);
-        if (cached != null) {
-            return cached;
-        }
+    public void run() {
 
         if (dropList.contains(imageUrl)) {
-            throw  new InterruptedException("dropping url: " + imageUrl);
+            System.out.printf("ignoring %s%n", imageUrl);
+            latch.countDown();
+            return;
         }
 
-        final BufferedImage image = downloadImage();
-
-        if (image != null) {
-            final int[][] palette = ColorThief.getPalette(
-                image,
-                colorCount,
-                quality,
-                ignoreWhite
-            );
-
-            String color1 = convertRgbArrayToHexColor(palette[0]);
-            String color2 = convertRgbArrayToHexColor(palette[1]);
-            String color3 = convertRgbArrayToHexColor(palette[2]);
-
-            final String[] result = {imageUrl, color1, color2, color3};
-            cache.put(imageUrl, result);
-            return result;
-        } else {
-
-            throw  new InterruptedException("got a null image!");
+        final StringBuilder cached = cache.get(imageUrl);
+        if (cached != null) {
+            buffer.append(cached);
+            System.out.printf("cache hit %s", cached.toString());
+            latch.countDown();
+            return;
         }
+
+        final BufferedImage image;
+        try {
+            image = downloadImage();
+        } catch (IllegalThreadStateException e) {
+            System.out.printf("error %s%n", e.getMessage());
+            latch.countDown();
+            return;
+        }
+
+        final int[][] palette = ColorThief.getPalette(
+            image,
+            colorCount,
+            quality,
+            ignoreWhite
+        );
+
+        StringBuilder result = new StringBuilder().append(imageUrl);
+
+        for (int i = 0; i < colorCount; i++) {
+            result.append(",");
+            result.append(convertRgbArrayToHexColor(palette[i]));
+        }
+        result.append("\n");
+
+        buffer.append(result);
+        cache.put(imageUrl, result);
+        System.out.printf("recorded %s", result.toString());
+        latch.countDown();
+
 
     }
 
@@ -79,7 +97,7 @@ public class ProcessingTask implements Callable<String[]> {
         ).toUpperCase();
     }
 
-    BufferedImage downloadImage() {
+    BufferedImage downloadImage() throws IllegalThreadStateException {
 
         try {
 
@@ -93,12 +111,13 @@ public class ProcessingTask implements Callable<String[]> {
             System.out.printf("adding %s to ignore list%n", imageUrl);
             dropList.add(imageUrl);
         } catch (MalformedURLException e) {
-            System.out.printf("malformed url: %s", imageUrl);
+            System.out.printf("malformed url: %s%n", imageUrl);
             dropList.add(imageUrl);
         } catch (IOException e) {
-            System.out.printf("error : %s", e.getMessage());
+            System.out.printf("error : %s%n", e.getMessage());
         }
-        return null;
+        throw new IllegalThreadStateException("problem with " + imageUrl);
     }
+
 
 }
