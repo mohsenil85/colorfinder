@@ -12,7 +12,6 @@ import org.openjdk.jmh.annotations.Warmup;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -30,15 +29,13 @@ public class BenchmarkTest {
         static String localUrl = "file:./src/test/resources/test-list.txt";
         static String github =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
-        static String testOutput = "./target/results.csv";
+        static String testOutput = "./target/test-results.csv";
         static int timeout = 5;
         static int nThreads = 10;
         static int colorCount = 3;
         static int quality = 50;
         static boolean ignoreWhite = false;
         static Set<String> dropList = ConcurrentHashMap.newKeySet();
-        static CountDownLatch latch = new CountDownLatch(10);
-        static StringBuffer buffer = new StringBuffer();
 
     }
 
@@ -58,12 +55,11 @@ public class BenchmarkTest {
             .colorCount(Scope.colorCount)
             .quality(Scope.quality)
             .dropList(Scope.dropList)
+            .outputFile(Scope.testOutput)
             .ignoreWhite(Scope.ignoreWhite)
-            .latch(Scope.latch)
-            .buffer(Scope.buffer)
             .build()
 
-            .run();
+            .call();
     }
 
     @Benchmark
@@ -76,11 +72,10 @@ public class BenchmarkTest {
             .quality(10)
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
-            .latch(Scope.latch)
-            .buffer(Scope.buffer)
+            .outputFile(Scope.testOutput)
             .build()
 
-            .run();
+            .call();
     }
 
     @Benchmark
@@ -93,11 +88,10 @@ public class BenchmarkTest {
             .quality(30)
             .ignoreWhite(Scope.ignoreWhite)
             .dropList(Scope.dropList)
-            .latch(Scope.latch)
-            .buffer(Scope.buffer)
+            .outputFile(Scope.testOutput)
             .build()
 
-            .run();
+            .call();
     }
 
     @Benchmark

@@ -6,7 +6,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +20,7 @@ public class ImageProcessorTest {
     private ExecutorService executorService;
 
     @Mock
-    private Map<String, StringBuilder> cache;
+    private Map<String, String> cache;
 
     @Mock
     private Set<String> dropList;
@@ -33,7 +32,7 @@ public class ImageProcessorTest {
         "./src/test/resources/test-results.csv";
 
     @Before
-    public void setUp() throws MalformedURLException {
+    public void setUp() {
 
         MockitoAnnotations.initMocks(this);
 
@@ -44,6 +43,7 @@ public class ImageProcessorTest {
             .executorService(executorService)
             .cache(cache)
             .dropList(dropList)
+            .outputFile(outputFile)
             .build();
 
     }
@@ -54,7 +54,7 @@ public class ImageProcessorTest {
         imageProcessor
             .processAllImages();
 
-        verify(executorService).shutdownNow();
+        verify(executorService).shutdown();
     }
 
 }

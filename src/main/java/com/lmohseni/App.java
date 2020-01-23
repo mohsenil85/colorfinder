@@ -21,7 +21,7 @@ public class App {
         return ImageProcessor.builder()
 
             //idle seconds to wait before shutdown
-            .timeout(10)
+            .timeout(1)
 
             //per spec
             .colorCount(3)

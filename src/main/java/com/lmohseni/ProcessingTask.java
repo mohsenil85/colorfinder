@@ -4,6 +4,7 @@ import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,13 +14,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Data
 @Builder
-public class ProcessingTask implements Runnable {
+public class ProcessingTask implements Callable<ProcessingTask.Result> {
 
     @NonNull
     private final String imageUrl;
@@ -28,55 +33,71 @@ public class ProcessingTask implements Runnable {
     private final boolean ignoreWhite;
 
     @NonNull
-    private final Map<String, StringBuilder> cache;
+    private final Map<String, String> cache;
     @NonNull
     private final Set<String> dropList;
 
     @NonNull
-    private final CountDownLatch latch;
+    private final String outputFile;
 
-    @NonNull
-    private final StringBuffer buffer;
-
+    @SneakyThrows
     @Override
-    public void run() {
-        System.out.printf("%s ", Thread.currentThread().getName());
+    public Result call() {
+        final String name = Thread.currentThread().getName();
 
         if (dropList.contains(imageUrl)) {
-            System.out.printf("ignoring %s%n", imageUrl);
-            latch.countDown();
-            return;
+            System.out.printf("%s: ignoring %s%n", name, imageUrl);
+            return Result.builder()
+                .url(imageUrl)
+                .success(false)
+                .build();
         }
 
-        final StringBuilder cached = cache.get(imageUrl);
+        final String cached = cache.get(imageUrl);
         if (cached != null) {
-            buffer.append(cached);
-            System.out.printf("cache hit %s", cached.toString());
-            latch.countDown();
-            return;
+            writeLn(cached);
+            System.out.printf("%s: cache hit %s", name, cached);
+            return Result.builder()
+                .url(imageUrl)
+                .success(true)
+                .build();
         }
 
         final BufferedImage image = downloadImage();
 
         if (null == image) {
-            System.out.printf("problem with: %s%n", imageUrl);
-            latch.countDown();
-            return;
+            System.out.printf("%s, problem with: %s%n", name, imageUrl);
+            return Result.builder()
+                .url(imageUrl)
+                .success(false)
+                .build();
         }
 
-        StringBuilder result = constructResult(image);
+        String result = constructResult(image);
+        writeLn(result);
 
-        latch.countDown();
-        buffer.append(result);
+        cache.put(imageUrl, result);
 
-        System.out.printf("recorded %s", result.toString());
+        System.out.printf("%s recorded %s", name, result);
 
-        Thread.currentThread().interrupt();
-
-
+        return Result.builder()
+            .success(true)
+            .url(imageUrl)
+            .build();
     }
 
-    private StringBuilder constructResult(BufferedImage image) {
+    private void writeLn(String s) {
+        try {
+            Files.write(Path.of(outputFile),
+                s.getBytes(),
+                StandardOpenOption.CREATE
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String constructResult(BufferedImage image) {
         final StringBuilder result = new StringBuilder();
         final int[][] palette = ColorThief.getPalette(
             image,
@@ -92,8 +113,7 @@ public class ProcessingTask implements Runnable {
             result.append(convertRgbArrayToHexColor(palette[i]));
         }
         result.append("\n");
-        cache.put(imageUrl, result);
-        return result;
+        return result.toString();
     }
 
     String convertRgbArrayToHexColor(int[] rgb) {
@@ -106,7 +126,7 @@ public class ProcessingTask implements Runnable {
         ).toUpperCase();
     }
 
-    BufferedImage downloadImage() throws IllegalThreadStateException {
+    BufferedImage downloadImage() {
 
         try {
 
@@ -126,6 +146,15 @@ public class ProcessingTask implements Runnable {
             System.out.printf("error : %s%n", e.getMessage());
         }
         return null;
+    }
+
+    @Data
+    @Builder
+    static class Result {
+
+        final String url;
+        final boolean success;
+
     }
 
 

@@ -13,6 +13,9 @@ import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.verify;
 
 public class ProcessingTaskTest {
 
@@ -22,7 +25,7 @@ public class ProcessingTaskTest {
     File referenceImage;
 
     @Mock
-    Map<String, StringBuilder> cache;
+    Map<String, String> cache;
 
     @Mock
     Set<String> dropList;
@@ -37,6 +40,7 @@ public class ProcessingTaskTest {
             .quality(5)
             .ignoreWhite(false)
             .cache(cache)
+            .outputFile("./target/test-output.csv")
             .dropList(dropList)
             .build();
 
@@ -55,16 +59,9 @@ public class ProcessingTaskTest {
     }
 
     @Test
-    public void call() throws InterruptedException {
-//        final String[] expected = {
-//            "http://i.imgur.com/TKLs9lo.jpg",
-//            "#F1F0F0",
-//            "#3F4758",
-//            "#D62C35"
-//        };
-//        final String[] actual =
-        task.run();
-//        assertArrayEquals(expected, actual);
+    public void run() {
+        final ProcessingTask.Result call = task.call();
+        assertFalse(verify(dropList).contains(anyString()));
     }
 
     @Test
@@ -90,6 +87,7 @@ public class ProcessingTaskTest {
         ProcessingTask.builder()
             .imageUrl("invalidUrl")
             .cache(cache)
+            .outputFile("./target/test-output.csv")
             .dropList(dropList)
             .build()
             .downloadImage();
@@ -100,6 +98,7 @@ public class ProcessingTaskTest {
         ProcessingTask.builder()
             .imageUrl("https://i.redd.it/nrafqoujmety.jpg")
             .cache(cache)
+            .outputFile("./target/test-output.csv")
             .dropList(dropList)
             .build()
             .downloadImage();
@@ -111,6 +110,7 @@ public class ProcessingTaskTest {
         ProcessingTask.builder()
             .imageUrl("https://i.redd.it/m4cfqp8wfv5z.jpg")
             .cache(cache)
+            .outputFile("./target/test-output.csv")
             .dropList(dropList)
             .build()
             .downloadImage();
