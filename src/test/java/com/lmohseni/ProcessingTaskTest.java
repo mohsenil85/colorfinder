@@ -1,5 +1,6 @@
 //package com.lmohseni;
 //
+//import co.paralleluniverse.fibers.FiberExecutorScheduler;
 //import co.paralleluniverse.fibers.SuspendExecution;
 //import org.junit.Before;
 //import org.junit.Ignore;
@@ -9,10 +10,14 @@
 //
 //import javax.imageio.ImageIO;
 //import java.awt.image.BufferedImage;
+//import java.io.BufferedWriter;
 //import java.io.File;
+//import java.io.FileWriter;
+//import java.io.IOException;
 //import java.util.Map;
 //import java.util.Objects;
 //import java.util.Set;
+//import java.util.concurrent.CountDownLatch;
 //
 //import static org.junit.Assert.assertEquals;
 //import static org.junit.Assert.assertFalse;
@@ -33,9 +38,23 @@
 //    @Mock
 //    Set<String> dropList;
 //
+//    @Mock
+//    CountDownLatch latch;
+//
+//    @Mock
+//    FiberExecutorScheduler scheduler;
+//
+//    BufferedWriter writer;
+//
 //    @Before
-//    public void setup() {
+//    public void setup() throws IOException {
 //        MockitoAnnotations.initMocks(this);
+//
+//        final String outputFileName = "./target/test-output.csv";
+//
+//         writer = new BufferedWriter(
+//            new FileWriter(outputFileName)
+//        );
 //
 //        task = ProcessingTask.builder()
 //            .imageUrl(imageUrl)
@@ -43,8 +62,11 @@
 //            .quality(5)
 //            .ignoreWhite(false)
 //            .cache(cache)
-//            .outputFile("./target/test-output.csv")
+//            .outputFile(outputFileName)
 //            .dropList(dropList)
+//            .latch(latch)
+//            .writer(writer)
+//            .scheduler(scheduler)
 //            .build();
 //
 //        referenceImage = new File(
@@ -70,7 +92,7 @@
 //    @Test
 //    public void downloadImage() throws Exception {
 //        final BufferedImage actual = task
-//            .downloadImage();
+//            .downloadImage(task.getImageUrl());
 //        final BufferedImage expected = ImageIO.read(referenceImage);
 //
 //        assertEquals(expected.getHeight(), actual.getHeight());
@@ -82,7 +104,7 @@
 //        ProcessingTask.builder()
 //            .imageUrl(null)
 //            .build()
-//            .downloadImage();
+//            .downloadImage(task.getImageUrl());
 //    }
 //
 //    @Test
@@ -93,7 +115,7 @@
 //            .outputFile("./target/test-output.csv")
 //            .dropList(dropList)
 //            .build()
-//            .downloadImage();
+//            .downloadImage(task.getImageUrl());
 //    }
 //
 //    @Test
@@ -104,7 +126,7 @@
 //            .outputFile("./target/test-output.csv")
 //            .dropList(dropList)
 //            .build()
-//            .downloadImage();
+//            .downloadImage(task.getImageUrl());
 //    }
 //
 //
@@ -115,8 +137,11 @@
 //            .cache(cache)
 //            .outputFile("./target/test-output.csv")
 //            .dropList(dropList)
+//            .latch(latch)
+//            .writer(writer)
+//            .scheduler(scheduler)
 //            .build()
-//            .downloadImage();
+//            .downloadImage(task.getImageUrl());
 //    }
 //
 //
@@ -136,7 +161,7 @@
 //
 //
 //    private void retrieveReferenceImage() throws Exception {
-//        final BufferedImage image = task.downloadImage();
+//        final BufferedImage image = task.downloadImage(imageUrl);
 //        ImageIO.write(image, "JPEG", referenceImage);
 //    }
 //

@@ -2,9 +2,12 @@ package com.lmohseni;
 
 import co.paralleluniverse.fibers.DefaultFiberScheduler;
 import co.paralleluniverse.fibers.Fiber;
+import co.paralleluniverse.fibers.FiberExecutorScheduler;
+import co.paralleluniverse.strands.concurrent.ReentrantReadWriteLock;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,16 +16,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Data
@@ -40,7 +42,7 @@ public class ImageProcessor {
     @NonNull
     private final ExecutorService executorService;
     @NonNull
-    private final ConcurrentHashMap<String, String> cache;
+    private final Map<String, String> cache;
     @NonNull
     private final Set<String> dropList;
 
@@ -48,6 +50,7 @@ public class ImageProcessor {
     private BufferedWriter writer;
 
 
+    @SneakyThrows
     public void processAllImages() {
 
         System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
@@ -78,33 +81,47 @@ public class ImageProcessor {
             throw new RuntimeException("could not write: " + outputFile);
         }
 
-        final List<String> urls = reader.lines().parallel().collect(Collectors.toList());
+        final List<String> urls = reader.lines().collect(Collectors.toList());
 
+        FiberExecutorScheduler scheduler = new FiberExecutorScheduler(
+            "img-proc-pool",
+            DefaultFiberScheduler.getInstance().getExecutor()
+        );
         CountDownLatch latch = new CountDownLatch(urls.size());
         final List<ProcessingTask> tasks = urls.stream()
-            .map((String url) -> createTask(url, latch, writer))
+            .map((String url) -> createTask(url, latch, writer,  urls.size() ))
             .collect(Collectors.toList());
-
-        DefaultFiberScheduler scheduler = new DefaultFiberScheduler();
 
         tasks
             .forEach(task -> {
-                new Fiber<>(task).start();
+                new Fiber<>(scheduler, task).start();
 
             });
 
         try {
             latch.await();
+            throw new InterruptedException();
+        } catch (Exception e) {
+            System.out.println("exiting");
+        } finally {
             writer.flush();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
+            executorService.shutdown();
+
+            Instant end = Instant.now();
+            System.out.printf(
+                "execution time: %s s%n", Duration.between(start, end).getSeconds()
+            );
+            try {
+                final long records = Files.lines(Paths.get(outputFile)).count();
+                System.out.printf("processed %d records%n", records);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.printf("drop list length: %d %n", dropList.size());
+            System.out.printf("cache size %d records%n", cache.size());
+
         }
 
-        Instant end = Instant.now();
-        System.out.printf(
-            "execution time: %s s%n", Duration.between(start, end).getSeconds()
-        );
-        System.out.printf("drop list length: %d %n", dropList.size());
 
     }
 
@@ -112,7 +129,9 @@ public class ImageProcessor {
     private ProcessingTask createTask(
         String url,
         CountDownLatch latch,
-        BufferedWriter writer
+        BufferedWriter writer,
+        int size
+
     ) {
         return
             ProcessingTask.builder()
@@ -125,6 +144,9 @@ public class ImageProcessor {
                 .cache(cache)
                 .dropList(dropList)
                 .outputFile(outputFile)
+                .scheduler(DefaultFiberScheduler.getInstance())
+                .size(size)
+//                .executorService(executorService)
                 .build();
 
     }

@@ -115,7 +115,7 @@
                 <version>1.3.2</version>
                 <executions>
                     <execution>
-                        <phase>install</phase>
+                        <phase>verify</phase>
                         <configuration>
                             <mainClass>${project.mainClass}</mainClass>
                             <!--                    <workingDirectory>target/classes</workingDirectory>-->

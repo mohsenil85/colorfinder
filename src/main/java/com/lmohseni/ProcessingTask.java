@@ -1,8 +1,12 @@
 package com.lmohseni;
 
+import co.paralleluniverse.fibers.Fiber;
+import co.paralleluniverse.fibers.FiberAsync;
+import co.paralleluniverse.fibers.FiberExecutorScheduler;
+import co.paralleluniverse.fibers.FiberScheduler;
+import co.paralleluniverse.fibers.Suspendable;
 import co.paralleluniverse.strands.Strand;
 import co.paralleluniverse.strands.SuspendableRunnable;
-import co.paralleluniverse.strands.concurrent.ReentrantReadWriteLock;
 import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
 import lombok.Data;
@@ -18,10 +22,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 @Data
 @Builder
@@ -32,15 +45,15 @@ public class ProcessingTask implements SuspendableRunnable {
     private final int colorCount;
     private final int quality;
     private final boolean ignoreWhite;
+    private final int size;
 
     @NonNull
-    private final ConcurrentHashMap<String, String> cache;
+    private final Map<String, String> cache;
     @NonNull
     private final Set<String> dropList;
 
     @NonNull
     private final String outputFile;
-
 
     @NonNull
     private final CountDownLatch latch;
@@ -49,40 +62,47 @@ public class ProcessingTask implements SuspendableRunnable {
     private final BufferedWriter writer;
 
 
+//    @NonNull
+//    private final ExecutorService executorService;
+
+
+    @NonNull
+    private final FiberScheduler scheduler;
+
+    private BufferedImage image;
+
     @SneakyThrows
     @Override
     public void run() {
 
+        long idx = (long) size - latch.getCount();
         boolean locked = false;
 
-        ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-        final ReentrantReadWriteLock.ReadLock readLock = lock.readLock();
-        final ReentrantReadWriteLock.WriteLock writeLock = lock.writeLock();
+//        final int i = ai.getAndIncrement();
+        Path path = Paths.get(outputFile);
+        AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(
+            path, WRITE, CREATE);
 
-        final String name = Strand.currentStrand().getName();
+//        final String name = Strand.currentStrand().getName();
 
-//        if (dropList.contains(imageUrl)) {
-//            System.out.printf("%s: ignoring %s%n", name, imageUrl);
-//            latch.countDown();
-//            return;
-//        }
+        final String name = String.valueOf(idx);
+        if (dropList.contains(imageUrl)) {
+            System.out.printf("%s: ignoring %s%n", name, imageUrl);
+            latch.countDown();
+            return;
+        }
 
         final String cached;
-        locked = readLock.tryLock(500, TimeUnit.MILLISECONDS);
-        if (locked) {
-            try {
-                cached = cache.get(imageUrl);
-                if (cached != null) {
-                    System.out.printf("%s: cache hit %s", name, cached);
-                    writer.write(cached);
-                    latch.countDown();
-                    return;
-                }
-            } finally {
-                readLock.unlock();
-            }
+        cached = cache.get(imageUrl);
+        if (cached != null) {
+            System.out
+                .printf("### %s   %s: cache hit %s", (long) size - latch.getCount(), name, cached);
+            writer.write(cached);
+//            writer.flush();
+            latch.countDown();
+            return;
         }
-        final BufferedImage image = downloadImage();
+        final BufferedImage image = downloadImage(imageUrl, scheduler);
 
         if (null == image) {
             System.out.printf("%s, problem with: %s%n", name, imageUrl);
@@ -92,21 +112,17 @@ public class ProcessingTask implements SuspendableRunnable {
 
         final String result = constructResult(image);
 
-        locked = writeLock.tryLock(10, TimeUnit.MILLISECONDS);
-        if (locked) {
-            try {
-                cache.putIfAbsent(imageUrl, result);
-            } finally {
-                writeLock.unlock();
-            }
-        }
-
-        System.out.printf("%s recorded %s", name, result);
-
+        cache.putIfAbsent(imageUrl, result);
         writer.write(result);
 
-        latch.countDown();
+//        if (latch.getCount() % 80 == 0) {
+//            writer.flush();
+//
+//        }
 
+        System.out.printf("l# %s * %s recorded %s", (long) size - latch.getCount(), name, result);
+
+        latch.countDown();
 
     }
 
@@ -139,15 +155,14 @@ public class ProcessingTask implements SuspendableRunnable {
         ).toUpperCase();
     }
 
-    BufferedImage downloadImage() {
+    BufferedImage downloadImage(String imageUrl, FiberScheduler scheduler) {
 
         try {
 
             final URL url = new URL(imageUrl);
             final InputStream inputStream = url.openStream();
-            final BufferedImage bufferedImage = ImageIO.read(
+            return ImageIO.read(
                 new BufferedInputStream(inputStream));
-            return bufferedImage;
 
         } catch (FileNotFoundException e) {
             System.out.printf("adding %s to ignore list%n", imageUrl);

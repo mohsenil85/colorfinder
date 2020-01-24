@@ -38,10 +38,10 @@ public class App {
             .outputFile("./target/results.csv")
 
             //threading strategy to use (see benchmarks)
-            .executorService(Executors.newWorkStealingPool())
+            .executorService(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1))
 
             //use memoization
-            .cache(new ConcurrentHashMap<>())
+            .cache(new ConcurrentHashMap<>(1000,.1f,Runtime.getRuntime().availableProcessors()+1))
 
             //don't retry bad operations
             .dropList(ConcurrentHashMap.newKeySet())
