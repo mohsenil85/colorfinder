@@ -11,17 +11,18 @@ public class App {
         //TODO: inputFile = args[1]
 
         final String inputFile =
-            "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
+        "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
+//            "file:./src/test/resources/test-list.txt";
 
         createDefaultImageProcessor(inputFile).processAllImages();
 
     }
 
-    private static ImageProcessor createDefaultImageProcessor(final String inputFile){
+    private static ImageProcessor createDefaultImageProcessor(final String inputFile) {
         return ImageProcessor.builder()
 
             //idle seconds to wait before shutdown
-            .timeout(1)
+            .timeout(4)
 
             //per spec
             .colorCount(3)
@@ -38,10 +39,12 @@ public class App {
             .outputFile("./target/results.csv")
 
             //threading strategy to use (see benchmarks)
-            .executorService(Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1))
+            .executorService(
+                Executors.newWorkStealingPool())
 
             //use memoization
-            .cache(new ConcurrentHashMap<>(1000,.1f,Runtime.getRuntime().availableProcessors()+1))
+            .cache(
+                new ConcurrentHashMap<>())
 
             //don't retry bad operations
             .dropList(ConcurrentHashMap.newKeySet())

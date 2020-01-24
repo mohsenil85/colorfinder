@@ -1,9 +1,8 @@
 package com.lmohseni;
 
-import co.paralleluniverse.fibers.DefaultFiberScheduler;
 import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.FiberExecutorScheduler;
-import co.paralleluniverse.strands.concurrent.ReentrantReadWriteLock;
+import co.paralleluniverse.fibers.FiberScheduler;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -25,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Data
@@ -60,6 +60,9 @@ public class ImageProcessor {
 
         final URL imagesUrl;
 
+        final FiberExecutorScheduler execJr = new FiberExecutorScheduler("execJr",
+            Executors.newFixedThreadPool(10));
+
         try {
             imagesUrl = new URL(inputFile);
         } catch (MalformedURLException e1) {
@@ -85,11 +88,11 @@ public class ImageProcessor {
 
         FiberExecutorScheduler scheduler = new FiberExecutorScheduler(
             "img-proc-pool",
-            DefaultFiberScheduler.getInstance().getExecutor()
+            executorService
         );
         CountDownLatch latch = new CountDownLatch(urls.size());
         final List<ProcessingTask> tasks = urls.stream()
-            .map((String url) -> createTask(url, latch, writer,  urls.size() ))
+            .map((String url) -> createTask(url, latch, writer, urls.size(), execJr))
             .collect(Collectors.toList());
 
         tasks
@@ -103,9 +106,10 @@ public class ImageProcessor {
             throw new InterruptedException();
         } catch (Exception e) {
             System.out.println("exiting");
-        } finally {
+
             writer.flush();
-            executorService.shutdown();
+            execJr.shutdown();
+            executorService.shutdownNow();
 
             Instant end = Instant.now();
             System.out.printf(
@@ -114,8 +118,8 @@ public class ImageProcessor {
             try {
                 final long records = Files.lines(Paths.get(outputFile)).count();
                 System.out.printf("processed %d records%n", records);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
             System.out.printf("drop list length: %d %n", dropList.size());
             System.out.printf("cache size %d records%n", cache.size());
@@ -130,7 +134,8 @@ public class ImageProcessor {
         String url,
         CountDownLatch latch,
         BufferedWriter writer,
-        int size
+        int size,
+        FiberScheduler scheduler
 
     ) {
         return
@@ -144,7 +149,7 @@ public class ImageProcessor {
                 .cache(cache)
                 .dropList(dropList)
                 .outputFile(outputFile)
-                .scheduler(DefaultFiberScheduler.getInstance())
+                .scheduler(scheduler)
                 .size(size)
 //                .executorService(executorService)
                 .build();

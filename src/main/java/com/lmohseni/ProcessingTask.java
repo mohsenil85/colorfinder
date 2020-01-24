@@ -1,11 +1,9 @@
 package com.lmohseni;
 
 import co.paralleluniverse.fibers.Fiber;
-import co.paralleluniverse.fibers.FiberAsync;
-import co.paralleluniverse.fibers.FiberExecutorScheduler;
 import co.paralleluniverse.fibers.FiberScheduler;
 import co.paralleluniverse.fibers.Suspendable;
-import co.paralleluniverse.strands.Strand;
+import co.paralleluniverse.strands.SuspendableCallable;
 import co.paralleluniverse.strands.SuspendableRunnable;
 import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
@@ -29,9 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -47,6 +42,8 @@ public class ProcessingTask implements SuspendableRunnable {
     private final boolean ignoreWhite;
     private final int size;
 
+    int scopeVar;
+
     @NonNull
     private final Map<String, String> cache;
     @NonNull
@@ -61,7 +58,6 @@ public class ProcessingTask implements SuspendableRunnable {
     @NonNull
     private final BufferedWriter writer;
 
-
 //    @NonNull
 //    private final ExecutorService executorService;
 
@@ -73,12 +69,11 @@ public class ProcessingTask implements SuspendableRunnable {
 
     @SneakyThrows
     @Override
+    @Suspendable
     public void run() {
 
         long idx = (long) size - latch.getCount();
-        boolean locked = false;
 
-//        final int i = ai.getAndIncrement();
         Path path = Paths.get(outputFile);
         AsynchronousFileChannel fileChannel = AsynchronousFileChannel.open(
             path, WRITE, CREATE);
@@ -102,17 +97,29 @@ public class ProcessingTask implements SuspendableRunnable {
             latch.countDown();
             return;
         }
-        final BufferedImage image = downloadImage(imageUrl, scheduler);
 
-        if (null == image) {
-            System.out.printf("%s, problem with: %s%n", name, imageUrl);
-            latch.countDown();
-            return;
-        }
+//        String s = new Fiber<>((SuspendableCallable<String>) () -> {
+//            System.out.printf("%s, inside!%n, size: %s%n", Strand.currentStrand().getName(), size);
+//            System.out.printf("int == %s%n", scopeVar++);
+////            Fiber.sleep(2000);
+//            return "foo";
+//        }).start().get();
+
+//        System.out.printf("%s, %n ", s);
+
+        final BufferedImage image = downloadImage(
+            imageUrl,
+            scheduler, dropList, latch);
+
+//        if (null == image) {
+//            System.out.printf("%s, problem with: %s%n", name, imageUrl);
+//            latch.countDown();
+//            return;
+//        }
 
         final String result = constructResult(image);
 
-        cache.putIfAbsent(imageUrl, result);
+        cache.put(imageUrl, result);
         writer.write(result);
 
 //        if (latch.getCount() % 80 == 0) {
@@ -125,6 +132,8 @@ public class ProcessingTask implements SuspendableRunnable {
         latch.countDown();
 
     }
+
+//    Fiber<int[][]> getPalette
 
     private String constructResult(BufferedImage image) {
         final StringBuilder result = new StringBuilder();
@@ -155,25 +164,40 @@ public class ProcessingTask implements SuspendableRunnable {
         ).toUpperCase();
     }
 
-    BufferedImage downloadImage(String imageUrl, FiberScheduler scheduler) {
+
+    @Suspendable
+    BufferedImage downloadImage(
+        String url,
+        FiberScheduler s,
+        Set<String> dropList,
+        CountDownLatch latch
+    ) {
 
         try {
+            return new Fiber<>( (SuspendableCallable<BufferedImage>) () -> {
+                try {
+                    return tryDownloadImage(url);
 
-            final URL url = new URL(imageUrl);
-            final InputStream inputStream = url.openStream();
-            return ImageIO.read(
-                new BufferedInputStream(inputStream));
+                } catch (MalformedURLException | FileNotFoundException e) {
+                    System.out.printf("adding %s to droplist%n", url);
+                    dropList.add(url);
+                    latch.countDown();
+                } catch (IOException e) {
 
-        } catch (FileNotFoundException e) {
-            System.out.printf("adding %s to ignore list%n", imageUrl);
-            dropList.add(imageUrl);
-        } catch (MalformedURLException e) {
-            System.out.printf("malformed url: %s%n", imageUrl);
-            dropList.add(imageUrl);
-        } catch (IOException e) {
-            System.out.printf("error : %s%n", e.getMessage());
+                    e.printStackTrace();
+                }
+                return null;
+            }).start().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
+    BufferedImage tryDownloadImage(String url) throws IOException {
+        final InputStream inputStream = new URL(url).openStream();
+        return ImageIO.read(
+            new BufferedInputStream(inputStream));
+
+    }
 }
