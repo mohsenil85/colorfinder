@@ -1,5 +1,6 @@
 package com.lmohseni;
 
+import co.paralleluniverse.strands.SuspendableRunnable;
 import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.SneakyThrows;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,12 +21,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 @Data
 @Builder
-public class ProcessingTask implements Callable<ProcessingTask.Result> {
+public class ProcessingTask implements SuspendableRunnable {
 
     @NonNull
     private final String imageUrl;
@@ -40,62 +41,65 @@ public class ProcessingTask implements Callable<ProcessingTask.Result> {
     @NonNull
     private final String outputFile;
 
+
+    @NonNull
+    private final CountDownLatch latch;
+
+    @NonNull
+    private final BufferedWriter writer;
+
+
     @SneakyThrows
     @Override
-    public Result call() {
+    public void run() {
+
+        latch.countDown();
+
+//        Lock lock = new ReentrantLock();
+
         final String name = Thread.currentThread().getName();
 
         if (dropList.contains(imageUrl)) {
             System.out.printf("%s: ignoring %s%n", name, imageUrl);
-            return Result.builder()
-                .url(imageUrl)
-                .success(false)
-                .build();
+            return;
         }
 
         final String cached = cache.get(imageUrl);
         if (cached != null) {
-            writeLn(cached);
             System.out.printf("%s: cache hit %s", name, cached);
-            return Result.builder()
-                .url(imageUrl)
-                .success(true)
-                .build();
+            writer.write(cached);
+            return;
         }
-
         final BufferedImage image = downloadImage();
 
         if (null == image) {
             System.out.printf("%s, problem with: %s%n", name, imageUrl);
-            return Result.builder()
-                .url(imageUrl)
-                .success(false)
-                .build();
+            return;
         }
 
         String result = constructResult(image);
-        writeLn(result);
+//        writeLn(result);
 
         cache.put(imageUrl, result);
 
         System.out.printf("%s recorded %s", name, result);
 
-        return Result.builder()
-            .success(true)
-            .url(imageUrl)
-            .build();
+        writer.write(result);
+
+
+
+//        writeLn(result);
     }
 
+    @SneakyThrows
     private void writeLn(String s) {
-        try {
-            Files.write(Path.of(outputFile),
-                s.getBytes(),
-                StandardOpenOption.CREATE
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("ATTEMPTING TO WRITE");
+        Files.write(Path.of(outputFile),
+            s.getBytes(),
+            StandardOpenOption.APPEND
+        );
     }
+
 
     private String constructResult(BufferedImage image) {
         final StringBuilder result = new StringBuilder();
