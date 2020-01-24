@@ -86,6 +86,7 @@
     </dependencies>
 
     <build>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -113,54 +114,51 @@
                 <artifactId>exec-maven-plugin
                 </artifactId> <!-- Run with "mvn compile maven-dependency-plugin:properties exec:exec" -->
                 <version>1.3.2</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <configuration>
-                            <mainClass>${project.mainClass}</mainClass>
-                            <!--                    <workingDirectory>target/classes</workingDirectory>-->
-                            <executable>java</executable>
-                            <arguments>
-                                <!-- Debug -->
-                                <!-- argument>-Xdebug<argument -->
-                                <!-- argument>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005<argument -->
 
-                                <!-- Configure memory settings as needed -->
-                                <!-- argument>-Xmx1000m</argument -->
+                <configuration>
+                    <mainClass>${project.mainClass}</mainClass>
+                    <!--                    <workingDirectory>target/classes</workingDirectory>-->
+                    <executable>java</executable>
+                    <arguments>
+                        <!-- Debug -->
+                        <!-- argument>-Xdebug<argument -->
+                        <!-- argument>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005<argument -->
 
-                                <!--
-                                    Agent-based runtime instrumentation; use _either_ AoT or agent-based, not both
-                                -->
+                        <!-- Configure memory settings as needed -->
+                        <!-- argument>-Xmx1000m</argument -->
 
-                                <argument>-jar</argument>
-                                <!-- Turn off before production -->
-                                <argument>-Dco.paralleluniverse.fibers.verifyInstrumentation=true</argument>
+                        <!--
+                            Agent-based runtime instrumentation; use _either_ AoT or agent-based, not both
+                        -->
 
-                                <!-- Enable if using compile-time (AoT) instrumentation -->
-                                <!-- argument>-Dco.paralleluniverse.fibers.disableAgentWarning</argument -->
+                        <argument>-jar</argument>
+                        <!-- Turn off before production -->
+                        <argument>-Dco.paralleluniverse.fibers.verifyInstrumentation=false</argument>
 
-                                <!-- Quasar Agent for JDK 7 -->
-                                <argument>-javaagent:${co.paralleluniverse:quasar-core:jar}
-                                </argument> <!-- Add "=b" to force instrumenting blocking calls like Thread.sleep() -->
+                        <!-- Enable if using compile-time (AoT) instrumentation -->
+                        <!-- argument>-Dco.paralleluniverse.fibers.disableAgentWarning</argument -->
 
-                                <!-- Quasar Agent for JDK 8 -->
-                                <!-- argument>-javaagent:${co.paralleluniverse:quasar-core:jar:jdk8}</argument -->
+                        <!-- Quasar Agent for JDK 7 -->
+                        <!--                                <argument>-javaagent:${co.paralleluniverse:quasar-core:jar}-->
+                        <!--                                </argument> &lt;!&ndash; Add "=b" to force instrumenting blocking calls like Thread.sleep() &ndash;&gt;-->
 
-                                <!-- Classpath -->
-                                <!--                        <argument>-classpath</argument>-->
-                                <!--                        <classpath/>-->
-                                <argument>target/${project.finalName}.jar</argument>
+                        <!-- Quasar Agent for JDK 8 -->
+                        <!--                                <argument>-javaagent:${co.paralleluniverse:quasar-core:jar:jdk8}</argument>-->
+                        <argument>-javaagent:${co.paralleluniverse:quasar-core:jar}</argument>
 
-                                <!-- Main class -->
-                                                        <argument>com.lmohseni.App</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>com.lmohseni</groupId>-->
-<!--                        <artifactId>colorfinder</artifactId>-->
+                        <!-- Classpath -->
+                        <!--                        <argument>-classpath</argument>-->
+                        <!--                        <classpath/>-->
+                        <argument>target/${project.finalName}.jar</argument>
+
+                        <!-- Main class -->
+                        <argument>com.lmohseni.App</argument>
+                    </arguments>
+                </configuration>
+                <!--                <dependencies>-->
+                <!--                    <dependency>-->
+                <!--                        <groupId>com.lmohseni</groupId>-->
+                <!--                        <artifactId>colorfinder</artifactId>-->
 <!--                        <version>1.0-SNAPSHOT</version>-->
 <!--                    </dependency>-->
 <!--                </dependencies>-->
