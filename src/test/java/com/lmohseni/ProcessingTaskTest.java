@@ -1,7 +1,5 @@
 package com.lmohseni;
 
-import co.paralleluniverse.fibers.Fiber;
-import co.paralleluniverse.fibers.FiberExecutorScheduler;
 import co.paralleluniverse.fibers.SuspendExecution;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -9,8 +7,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -42,9 +38,6 @@ public class ProcessingTaskTest {
     @Mock
     CountDownLatch latch;
 
-    @Mock
-    FiberExecutorScheduler scheduler;
-
     BufferedWriter writer;
 
     @Before
@@ -53,7 +46,7 @@ public class ProcessingTaskTest {
 
         final String outputFileName = "./target/test-output.csv";
 
-         writer = new BufferedWriter(
+        writer = new BufferedWriter(
             new FileWriter(outputFileName)
         );
 
@@ -67,7 +60,6 @@ public class ProcessingTaskTest {
             .dropList(dropList)
             .latch(latch)
             .writer(writer)
-            .scheduler(scheduler)
             .build();
 
         referenceImage = new File(
@@ -86,7 +78,7 @@ public class ProcessingTaskTest {
 
     @Test
     public void run() throws InterruptedException, SuspendExecution {
-         task.run();
+        task.run();
         assertFalse(verify(dropList).contains(anyString()));
     }
 
@@ -134,7 +126,6 @@ public class ProcessingTaskTest {
 //            .build()
 //            .downloadImage(task.getImageUrl());
 //    }
-
 
 //    @Test
 //    public void getColorOccurrences() {
