@@ -21,7 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -46,14 +46,13 @@ public class ImageProcessor {
 
     private BufferedReader reader;
     private BufferedWriter writer;
-    private CountDownLatch latch;
     private int batchSize;
 
 
     @SneakyThrows
     public void processAllImages() {
 
-        System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
+//        System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         Instant start = Instant.now();
@@ -88,20 +87,25 @@ public class ImageProcessor {
             executorService
         );
         batchSize = urls.size();
-        latch = new CountDownLatch(urls.size());
 
-        final List<ProcessingTask> tasks = urls.parallelStream()
+        final List<ProcessingTask> tasks = urls.stream()
             .map(url -> createTask(url))
             .collect(Collectors.toList());
 
-        tasks.parallelStream()
-            .forEach(task -> {
-                new Fiber<>(scheduler, task).start();
+        final List<Fiber<ProcessingTask.Result>> fibers = tasks.stream()
+            .map(task -> {
+                return new Fiber<>(scheduler, task).start();
+            }).collect(Collectors.toList());
 
-            });
+        for (Fiber<ProcessingTask.Result> f : fibers) {
+            try {
+                f.join();
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         try {
-            latch.await();
             throw new InterruptedException();
         } catch (Exception e) {
             System.out.println("exiting");
@@ -133,7 +137,6 @@ public class ImageProcessor {
         return
             ProcessingTask.builder()
                 .imageUrl(url)
-                .latch(latch)
                 .writer(writer)
                 .colorCount(colorCount)
                 .quality(quality)

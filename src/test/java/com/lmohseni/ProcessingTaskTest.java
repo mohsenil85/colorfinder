@@ -58,7 +58,6 @@ public class ProcessingTaskTest {
             .cache(cache)
             .outputFile(outputFileName)
             .dropList(dropList)
-            .latch(latch)
             .writer(writer)
             .build();
 

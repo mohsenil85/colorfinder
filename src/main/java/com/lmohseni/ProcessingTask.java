@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 @Data
@@ -36,8 +35,6 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
     private final boolean ignoreWhite;
     private final int size;
 
-    int scopeVar;
-
     @NonNull
     private final Map<String, String> cache;
     @NonNull
@@ -47,27 +44,22 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
     private final String outputFile;
 
     @NonNull
-    private final CountDownLatch latch;
-
-    @NonNull
     private final BufferedWriter writer;
 
-    String name;
+    String threadName;
 
     @Override
     @Suspendable
     public Result run() {
 
-        name = Strand.currentStrand().getName();
+        threadName = Strand.currentStrand().getName();
 
         final Result result;
 
-//        try {
-
         if (dropList.contains(imageUrl)) {
-            System.out.printf("%s: ignoring %s%n", name, imageUrl);
+            System.out.printf("%s: ignoring %s%n", threadName, imageUrl);
             return Result.builder()
-                .message("ignored " + name)
+                .message("ignored " + imageUrl)
                 .success(true)
                 .build();
         }
@@ -77,16 +69,16 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
         if (cached != null) {
             writeResult(cached);
             return Result.builder()
-                .message("cache hit " + name)
+                .message("cache hit " + imageUrl)
                 .success(true)
                 .build();
         }
 
-        final Optional<BufferedImage> maybeImage = downloadImage(imageUrl);
+        final Optional<BufferedImage> image = downloadImage(imageUrl);
 
-        if (maybeImage.isPresent()) {
-            final String palette = constructResult(
-                maybeImage.get(),
+        if (image.isPresent()) {
+            final String palette = detectPalette(
+                image.get(),
                 colorCount,
                 quality,
                 ignoreWhite
@@ -116,30 +108,24 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
 
     @Suspendable
     void writeResult(String message) {
-        if (message != null) {
 
-            try {
-                new Fiber<Void>((SuspendableRunnable) () -> {
-                    try {
-                        writer.write(message);
-                        writer.flush();
-                        System.out
-                            .printf("l# %s * %s recorded %s", (long) size - latch.getCount(), name,
-                                message);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    final String name = Fiber.currentFiber().getName();
-                }).start().join();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-
+        try {
+            new Fiber<Void>((SuspendableRunnable) () -> {
+                try {
+                    writer.write(message);
+                    writer.flush();
+                    System.out
+                        .printf("l# %s * recorded %s", threadName, message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start().join();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
 
-
     }
+
 
     @Suspendable
     Optional<int[][]> getPalette(
@@ -166,7 +152,7 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
 
 
     @Suspendable
-    private String constructResult(
+    private String detectPalette(
         BufferedImage image,
         int colorCount,
         int quality,
@@ -223,7 +209,7 @@ public class ProcessingTask implements SuspendableCallable<ProcessingTask.Result
                     System.out.printf("adding %s to droplist%n", url);
                     dropList.add(url);
                 } catch (IOException e) {
-                    System.out.printf("problem with url: %s", url);
+                    System.out.printf("problem with url: %s%n", url);
 
                 }
                 return null;
