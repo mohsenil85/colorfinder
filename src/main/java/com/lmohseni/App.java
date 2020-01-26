@@ -1,9 +1,6 @@
 package com.lmohseni;
 
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-
 public class App {
 
 
@@ -11,7 +8,7 @@ public class App {
         //TODO: inputFile = args[1]
 
         final String inputFile =
-        "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
+            "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
 //            "file:./src/test/resources/test-list.txt";
 
         createDefaultImageProcessor(inputFile).processAllImages();
@@ -37,17 +34,6 @@ public class App {
 
             //where to print the results
             .outputFile("./target/results.csv")
-
-            //threading strategy to use (see benchmarks)
-            .executorService(
-                Executors.newWorkStealingPool())
-
-            //use memoization
-            .cache(
-                new ConcurrentHashMap<>())
-
-            //don't retry bad operations
-            .dropList(ConcurrentHashMap.newKeySet())
 
             .build();
 
