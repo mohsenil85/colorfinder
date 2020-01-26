@@ -8,7 +8,6 @@ import co.paralleluniverse.strands.SuspendableRunnable;
 import de.androidpit.colorthief.ColorThief;
 import lombok.Builder;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -44,19 +43,22 @@ public class ImageProcessor {
     @NonNull
     private final String outputFile;
 
+    BufferedReader reader;
+    BufferedWriter writer;
 
-    @SneakyThrows
+    Map<URL, String> cache;
+    Set<URL> dropList;
+
     public void processAllImages() {
 
         Instant start = Instant.now();
         System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
 
-        URL inputUrl = tryCreateUrl(inputFile);
-        BufferedReader reader = tryCreateReader(inputUrl);
-        BufferedWriter writer = Files.newBufferedWriter(Path.of(outputFile));
+        reader = tryCreateReader(tryCreateUrl(inputFile));
+        writer = tryCreateWriter(outputFile);
 
-        Map<URL, String> cache = new ConcurrentHashMap<>();
-        Set<URL> dropList = ConcurrentHashMap.newKeySet();
+        cache = new ConcurrentHashMap<>();
+        dropList = ConcurrentHashMap.newKeySet();
 
         reader
             .lines()
@@ -64,7 +66,7 @@ public class ImageProcessor {
             .map(this::tryCreateUrl)
             .filter(Objects::nonNull)
             .filter(url -> !dropList.contains(url))
-            .map(url -> processOneImage(url, cache, dropList))
+            .map(url -> processOneImage(url, cache, dropList, enableCache))
             .filter(Objects::nonNull)
             .forEach(result -> writeResult(result, writer));
 
@@ -78,7 +80,8 @@ public class ImageProcessor {
     }
 
     @Suspendable
-    String processOneImage(URL url, Map<URL, String> cache, Set<URL> dropList) {
+    String processOneImage(URL url, Map<URL, String> cache, Set<URL> dropList,
+        boolean enableCache) {
         try {
             return new Fiber<>((SuspendableCallable<String>) () -> {
 
@@ -196,7 +199,15 @@ public class ImageProcessor {
             final InputStream is = inputUrl.openStream();
             return new BufferedReader(new InputStreamReader(is));
         } catch (IOException e) {
-            throw new RuntimeException("could not read from: " + inputFile);
+            throw new RuntimeException("could not read from: " + inputUrl.toString());
+        }
+    }
+
+    private BufferedWriter tryCreateWriter(String outputFile) {
+        try {
+            return Files.newBufferedWriter(Path.of(outputFile));
+        } catch (IOException e) {
+            throw new RuntimeException("could not write to: " + outputFile);
         }
     }
 
@@ -205,9 +216,12 @@ public class ImageProcessor {
 
     }
 
-    @SneakyThrows
     private long getFileLength(String outputFile) {
-        return Files.lines(Paths.get(outputFile)).count();
+        try {
+            return Files.lines(Paths.get(outputFile)).count();
+        } catch (IOException e) {
+            throw new RuntimeException("error writing to: " + outputFile);
+        }
     }
 
 }
