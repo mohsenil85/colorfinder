@@ -24,6 +24,8 @@ public class App {
             .quality(10)
             .ignoreWhite(true)
 
+            .enableCache(true)
+
             //url pointing to list of images
             // (for a local file, use a path like 'file:./some/local.csv')
             .inputFile(inputFile)

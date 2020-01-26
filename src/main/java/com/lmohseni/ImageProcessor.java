@@ -38,6 +38,7 @@ public class ImageProcessor {
     private final int colorCount;
     private final int quality;
     private final boolean ignoreWhite;
+    private final boolean enableCache;
     @NonNull
     private final String inputFile;
     @NonNull
@@ -47,14 +48,11 @@ public class ImageProcessor {
     @SneakyThrows
     public void processAllImages() {
 
+        Instant start = Instant.now();
         System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
 
-        Instant start = Instant.now();
-
         URL inputUrl = tryCreateUrl(inputFile);
-
         BufferedReader reader = tryCreateReader(inputUrl);
-
         BufferedWriter writer = Files.newBufferedWriter(Path.of(outputFile));
 
         Map<URL, String> cache = new ConcurrentHashMap<>();
@@ -71,6 +69,7 @@ public class ImageProcessor {
             .forEach(result -> writeResult(result, writer));
 
         Instant end = Instant.now();
+
         System.out.printf("execution time: %s%n", executionTime(start, end));
         System.out.printf("processed %d records%n", getFileLength(outputFile));
         System.out.printf("drop list length: %d%n", dropList.size());
@@ -78,28 +77,65 @@ public class ImageProcessor {
 
     }
 
-    private BufferedReader tryCreateReader(URL inputUrl) {
-        if (inputUrl == null) {
-            throw new RuntimeException("null input url");
-        }
+    @Suspendable
+    String processOneImage(URL url, Map<URL, String> cache, Set<URL> dropList) {
         try {
-            final InputStream is = inputUrl.openStream();
-            return new BufferedReader(new InputStreamReader(is));
-        } catch (IOException e) {
-            throw new RuntimeException("could not read from: " + inputFile);
+            return new Fiber<>((SuspendableCallable<String>) () -> {
+
+                if (enableCache && cache.containsKey(url)) {
+                    return cache.get(url);
+                }
+                final Pair<URL, BufferedImage> data = downloadImage(url, dropList);
+                if (data != null) {
+                    final String palette = detectPalette(data, cache);
+                    if (enableCache) {
+                        cache.put(url, palette);
+                    }
+                    return palette;
+                }
+                return null;
+
+            }).start().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
-    }
-
-    private long executionTime(Instant start, Instant end) {
-        return Duration.between(start, end).getSeconds();
+        return null;
 
     }
 
-    @SneakyThrows(IOException.class)
-    long getFileLength(String outputFile) {
-        return Files.lines(Paths.get(outputFile)).count();
+    Pair<URL, BufferedImage> downloadImage(URL url, Set<URL> dropList) {
+        try {
+            final InputStream inputStream = url.openStream();
+            if (inputStream != null) {
+                final BufferedInputStream is = new BufferedInputStream(
+                    inputStream);
+                final BufferedImage image = ImageIO.read(is);
+                if (image != null) {
+                    return new Pair<URL, BufferedImage>(url, image);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.printf("adding %s to droplist%n", url.toString());
+            dropList.add(url);
+        } catch (IOException e) {
+            System.out.printf("problem with url: %s%n", url.toString());
+
+        }
+        return null;
     }
 
+    String detectPalette(Pair<URL, BufferedImage> data, Map<URL, String> cache) {
+        final URL url = data.getFirst();
+        final BufferedImage image = data.getSecond();
+        final int[][] palette = ColorThief.getPalette(
+            image,
+            colorCount,
+            quality,
+            ignoreWhite
+        );
+
+        return formatResult(url, palette);
+    }
 
     @Suspendable
     void writeResult(String message, BufferedWriter writer) {
@@ -117,62 +153,6 @@ public class ImageProcessor {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    @Suspendable
-    private String processOneImage(
-        URL url,
-        Map<URL, String> cache,
-        Set<URL> dropList
-    ) {
-        try {
-            return new Fiber<>((SuspendableCallable<String>) () -> {
-
-                if (cache.containsKey(url)) {
-                    return cache.get(url);
-                }
-                final Pair<URL, BufferedImage> data = downloadImage(url, dropList);
-                if (data != null && data.getSecond() != null) {
-
-                    final String palette = detectPalette(data, cache);
-                    return palette;
-                }
-                return null;
-
-            }).start().get();
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-
-    }
-
-
-    @Suspendable
-    private String detectPalette(Pair<URL, BufferedImage> data, Map<URL, String> cache) {
-        final URL url = data.getFirst();
-        final BufferedImage image = data.getSecond();
-        try {
-            final String result = new Fiber<String>(
-                (SuspendableCallable<String>) () -> {
-
-                    final int[][] palette = ColorThief.getPalette(
-                        image,
-                        colorCount,
-                        quality,
-                        ignoreWhite
-                    );
-
-                    return formatResult(url, palette);
-
-                }).start().get();
-            cache.put(url, result);
-            return result;
-        } catch (InterruptedException | ExecutionException e) {
-            System.out.println("fiber problem: " + url.toString());
-            e.printStackTrace();
-        }
-        return null;
     }
 
     String formatResult(URL url, int[][] palette) {
@@ -199,42 +179,6 @@ public class ImageProcessor {
         ).toUpperCase();
     }
 
-
-    @Suspendable
-    Pair<URL, BufferedImage> downloadImage(URL url, Set<URL> dropList) {
-
-        try {
-            return new Fiber<>(
-                (SuspendableCallable<Pair<URL, BufferedImage>>) () -> {
-                    try {
-                        final InputStream inputStream = url.openStream();
-                        if (inputStream != null) {
-                            final BufferedInputStream is = new BufferedInputStream(
-                                inputStream);
-                            final BufferedImage image = ImageIO.read(is);
-                            if (image != null) {
-                                return new Pair<URL, BufferedImage>(url, image);
-                            }
-                        }
-                    } catch (FileNotFoundException e) {
-                        System.out.printf("adding %s to droplist%n", url.toString());
-                        dropList.add(url);
-                    } catch (IOException e) {
-                        System.out.printf("problem with url: %s%n", url.toString());
-
-                    }
-                    return null;
-
-                }).start().get();
-
-        } catch (ExecutionException | InterruptedException e) {
-            System.out.println("fiber problem: " + url.toString());
-            e.printStackTrace();
-
-        }
-        return null;
-    }
-
     private URL tryCreateUrl(String s) {
         try {
             return new URL(s);
@@ -243,4 +187,27 @@ public class ImageProcessor {
             return null;
         }
     }
+
+    private BufferedReader tryCreateReader(URL inputUrl) {
+        if (inputUrl == null) {
+            throw new RuntimeException("null input url");
+        }
+        try {
+            final InputStream is = inputUrl.openStream();
+            return new BufferedReader(new InputStreamReader(is));
+        } catch (IOException e) {
+            throw new RuntimeException("could not read from: " + inputFile);
+        }
+    }
+
+    private long executionTime(Instant start, Instant end) {
+        return Duration.between(start, end).getSeconds();
+
+    }
+
+    @SneakyThrows
+    private long getFileLength(String outputFile) {
+        return Files.lines(Paths.get(outputFile)).count();
+    }
+
 }
