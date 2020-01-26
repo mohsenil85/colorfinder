@@ -17,10 +17,6 @@ public class App {
 
     private static ImageProcessor createDefaultImageProcessor(final String inputFile) {
         return ImageProcessor.builder()
-
-            //idle seconds to wait before shutdown
-            .timeout(4)
-
             //per spec
             .colorCount(3)
 

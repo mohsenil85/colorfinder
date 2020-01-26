@@ -35,7 +35,6 @@ import java.util.concurrent.ExecutionException;
 @Builder
 public class ImageProcessor {
 
-    private final int timeout;
     private final int colorCount;
     private final int quality;
     private final boolean ignoreWhite;
@@ -44,60 +43,55 @@ public class ImageProcessor {
     @NonNull
     private final String outputFile;
 
-    private final Map<URL, String> cache = new ConcurrentHashMap<>();
-    private final Set<URL> dropList = ConcurrentHashMap.newKeySet();
-
-    private BufferedReader reader;
-    private BufferedWriter writer;
-    private int batchSize;
-
 
     @SneakyThrows
     public void processAllImages() {
 
         System.setProperty("co.paralleluniverse.fibers.detectRunawayFibers", "false");
 
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         Instant start = Instant.now();
 
-        try {
-            new URL(inputFile);
-        } catch (MalformedURLException e1) {
-            throw new RuntimeException("could not create a url from: " + inputFile);
-        }
+        URL inputUrl = tryCreateUrl(inputFile);
 
-        try {
-            final InputStream is = new URL(inputFile).openStream();
-            reader = new BufferedReader(new InputStreamReader(is));
-        } catch (IOException e1) {
-            throw new RuntimeException("could not read from: " + inputFile);
-        }
+        BufferedReader reader = tryCreateReader(inputUrl);
 
-        writer = Files.newBufferedWriter(Path.of(outputFile));
+        BufferedWriter writer = Files.newBufferedWriter(Path.of(outputFile));
+
+        Map<URL, String> cache = new ConcurrentHashMap<>();
+        Set<URL> dropList = ConcurrentHashMap.newKeySet();
 
         reader
             .lines()
             .parallel()
-            .map(line -> tryCreateUrl(line))
+            .map(this::tryCreateUrl)
             .filter(Objects::nonNull)
             .filter(url -> !dropList.contains(url))
-            .map(url -> downloadAndSummarize(url))
+            .map(url -> processOneImage(url, cache, dropList))
             .filter(Objects::nonNull)
-            .forEach(result -> writeResult(result.toString()));
-
-        System.out.println("exiting");
-
-//        writer.flush();
+            .forEach(result -> writeResult(result, writer));
 
         Instant end = Instant.now();
-        System.out.printf(
-            "execution time: %s s%n", Duration.between(start, end).getSeconds()
-        );
-        final long records = getFileLength(outputFile);
-        System.out.printf("processed %d records%n", records);
-        System.out.printf("drop list length: %d %n", dropList.size());
+        System.out.printf("execution time: %s%n", executionTime(start, end));
+        System.out.printf("processed %d records%n", getFileLength(outputFile));
+        System.out.printf("drop list length: %d%n", dropList.size());
         System.out.printf("cache size %d records%n", cache.size());
 
+    }
+
+    private BufferedReader tryCreateReader(URL inputUrl) {
+        if (inputUrl == null) {
+            throw new RuntimeException("null input url");
+        }
+        try {
+            final InputStream is = inputUrl.openStream();
+            return new BufferedReader(new InputStreamReader(is));
+        } catch (IOException e) {
+            throw new RuntimeException("could not read from: " + inputFile);
+        }
+    }
+
+    private long executionTime(Instant start, Instant end) {
+        return Duration.between(start, end).getSeconds();
 
     }
 
@@ -108,7 +102,7 @@ public class ImageProcessor {
 
 
     @Suspendable
-    void writeResult(String message) {
+    void writeResult(String message, BufferedWriter writer) {
         try {
             new Fiber<Void>((SuspendableRunnable) () -> {
                 try {
@@ -126,21 +120,22 @@ public class ImageProcessor {
     }
 
     @Suspendable
-    private String downloadAndSummarize(URL url) {
-        if (cache.containsKey(url)) {
-            return cache.get(url);
-        }
-
+    private String processOneImage(
+        URL url,
+        Map<URL, String> cache,
+        Set<URL> dropList
+    ) {
         try {
             return new Fiber<>((SuspendableCallable<String>) () -> {
-                final Pair<URL, BufferedImage> data = downloadImage(url);
+
+                if (cache.containsKey(url)) {
+                    return cache.get(url);
+                }
+                final Pair<URL, BufferedImage> data = downloadImage(url, dropList);
                 if (data != null && data.getSecond() != null) {
 
-                    final String palette = detectPalette(data, colorCount, quality, ignoreWhite);
-                    if (palette != null) {
-                        cache.put(url, palette);
-                        return palette;
-                    }
+                    final String palette = detectPalette(data, cache);
+                    return palette;
                 }
                 return null;
 
@@ -154,16 +149,11 @@ public class ImageProcessor {
 
 
     @Suspendable
-    private String detectPalette(
-        Pair<URL, BufferedImage> data,
-        int colorCount,
-        int quality,
-        boolean ignoreWhite
-    ) {
+    private String detectPalette(Pair<URL, BufferedImage> data, Map<URL, String> cache) {
         final URL url = data.getFirst();
         final BufferedImage image = data.getSecond();
         try {
-            return new Fiber<String>(
+            final String result = new Fiber<String>(
                 (SuspendableCallable<String>) () -> {
 
                     final int[][] palette = ColorThief.getPalette(
@@ -173,23 +163,29 @@ public class ImageProcessor {
                         ignoreWhite
                     );
 
-                    final StringBuilder result = new StringBuilder();
-
-                    result.append(url.toString());
-
-                    for (int i = 0; i < colorCount; i++) {
-                        result.append(",");
-                        result.append(convertRgbArrayToHexColor(palette[i]));
-                    }
-                    result.append("\n");
-                    return result.toString();
+                    return formatResult(url, palette);
 
                 }).start().get();
+            cache.put(url, result);
+            return result;
         } catch (InterruptedException | ExecutionException e) {
             System.out.println("fiber problem: " + url.toString());
             e.printStackTrace();
         }
         return null;
+    }
+
+    String formatResult(URL url, int[][] palette) {
+        final StringBuilder result = new StringBuilder();
+
+        result.append(url.toString());
+
+        for (int i = 0; i < colorCount; i++) {
+            result.append(",");
+            result.append(convertRgbArrayToHexColor(palette[i]));
+        }
+        result.append("\n");
+        return result.toString();
 
     }
 
@@ -205,7 +201,7 @@ public class ImageProcessor {
 
 
     @Suspendable
-    private Pair<URL, BufferedImage> downloadImage(URL url) {
+    Pair<URL, BufferedImage> downloadImage(URL url, Set<URL> dropList) {
 
         try {
             return new Fiber<>(
@@ -243,7 +239,7 @@ public class ImageProcessor {
         try {
             return new URL(s);
         } catch (MalformedURLException e) {
-            System.out.println("malformed url");
+            System.out.printf("malformed url: %s%n", s);
             return null;
         }
     }
