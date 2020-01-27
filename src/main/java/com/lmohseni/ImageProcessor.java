@@ -58,8 +58,7 @@ public class ImageProcessor {
 
         reader
             .lines()
-//            .parallel()
-            .sequential()
+            .parallel()
             .map(this::tryCreateUrl)
             .filter(Objects::nonNull)
             .map(url -> processOneImage(url, cache, enableCache))
@@ -75,8 +74,7 @@ public class ImageProcessor {
     }
 
     @Suspendable
-    String processOneImage(URL url, Map<URL, String> cache,
-        boolean enableCache) {
+    String processOneImage(URL url, Map<URL, String> cache, boolean enableCache) {
         try {
             return new Fiber<>((SuspendableCallable<String>) () -> {
 
@@ -102,7 +100,6 @@ public class ImageProcessor {
 
     @Suspendable
     BufferedImage downloadImage(URL url) {
-
         try {
             return new Fiber<>((SuspendableCallable<BufferedImage>) () -> {
 
@@ -117,6 +114,7 @@ public class ImageProcessor {
                     System.out.printf("problem with url: %s%n", url.toString());
                 }
                 return null;
+
             }).start().get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
@@ -126,7 +124,6 @@ public class ImageProcessor {
 
     @Suspendable
     private String detectPalette(BufferedImage image, URL url) {
-
         try {
             return new Fiber<>((SuspendableCallable<String>) () -> {
 
@@ -137,6 +134,7 @@ public class ImageProcessor {
                     ignoreWhite
                 );
                 return formatResult(url, palette);
+
             }).start().get();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
@@ -148,6 +146,7 @@ public class ImageProcessor {
     void writeResult(String message, BufferedWriter writer) {
         try {
             new Fiber<Void>((SuspendableRunnable) () -> {
+
                 try {
                     writer.write(message);
                     writer.flush();
@@ -155,7 +154,7 @@ public class ImageProcessor {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
+                
             }).start().join();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
@@ -164,20 +163,16 @@ public class ImageProcessor {
 
     String formatResult(URL url, int[][] palette) {
         final StringBuilder result = new StringBuilder();
-
         result.append(url.toString());
-
         for (int i = 0; i < colorCount; i++) {
             result.append(",");
             result.append(convertRgbArrayToHexColor(palette[i]));
         }
         result.append("\n");
         return result.toString();
-
     }
 
     String convertRgbArrayToHexColor(int[] rgb) {
-
         return String.format(
             "#%s%s%s",
             Integer.toHexString(rgb[0]),
@@ -224,7 +219,7 @@ public class ImageProcessor {
         try {
             return Files.lines(Paths.get(outputFile)).count();
         } catch (IOException e) {
-            throw new RuntimeException("error writing to: " + outputFile);
+            throw new RuntimeException("error determining file length: " + outputFile);
         }
     }
 
