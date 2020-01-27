@@ -1,6 +1,5 @@
 package com.lmohseni;
 
-import co.paralleluniverse.common.util.Pair;
 import co.paralleluniverse.fibers.Fiber;
 import co.paralleluniverse.fibers.Suspendable;
 import co.paralleluniverse.strands.SuspendableCallable;
@@ -88,9 +87,9 @@ public class ImageProcessor {
                 if (enableCache && cache.containsKey(url)) {
                     return cache.get(url);
                 }
-                final Pair<URL, BufferedImage> data = downloadImage(url, dropList);
-                if (data != null) {
-                    final String palette = detectPalette(data, cache);
+                final BufferedImage image = downloadImage(url, dropList);
+                if (image != null) {
+                    final String palette = detectPalette(image, url);
                     if (enableCache) {
                         cache.put(url, palette);
                     }
@@ -106,38 +105,53 @@ public class ImageProcessor {
 
     }
 
-    Pair<URL, BufferedImage> downloadImage(URL url, Set<URL> dropList) {
-        try {
-            final InputStream inputStream = url.openStream();
-            if (inputStream != null) {
-                final BufferedInputStream is = new BufferedInputStream(
-                    inputStream);
-                final BufferedImage image = ImageIO.read(is);
-                if (image != null) {
-                    return new Pair<URL, BufferedImage>(url, image);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.printf("adding %s to droplist%n", url.toString());
-            dropList.add(url);
-        } catch (IOException e) {
-            System.out.printf("problem with url: %s%n", url.toString());
+    @Suspendable
+    BufferedImage downloadImage(URL url, Set<URL> dropList) {
 
+        try {
+            return new Fiber<>((SuspendableCallable<BufferedImage>) () -> {
+
+                try {
+                    final InputStream inputStream = url.openStream();
+                    if (inputStream != null) {
+                        final BufferedInputStream is = new BufferedInputStream(
+                            inputStream);
+                        final BufferedImage image = ImageIO.read(is);
+                        return image;
+                    }
+                } catch (FileNotFoundException e) {
+                    System.out.printf("adding %s to droplist%n", url.toString());
+                    dropList.add(url);
+                } catch (IOException e) {
+                    System.out.printf("problem with url: %s%n", url.toString());
+
+                }
+                return null;
+            }).start().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
         return null;
     }
 
-    String detectPalette(Pair<URL, BufferedImage> data, Map<URL, String> cache) {
-        final URL url = data.getFirst();
-        final BufferedImage image = data.getSecond();
-        final int[][] palette = ColorThief.getPalette(
-            image,
-            colorCount,
-            quality,
-            ignoreWhite
-        );
+    @Suspendable
+    private String detectPalette(BufferedImage image, URL url) {
 
-        return formatResult(url, palette);
+        try {
+            return new Fiber<>((SuspendableCallable<String>) () -> {
+
+                final int[][] palette = ColorThief.getPalette(
+                    image,
+                    colorCount,
+                    quality,
+                    ignoreWhite
+                );
+                return formatResult(url, palette);
+            }).start().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Suspendable
