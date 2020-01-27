@@ -13,7 +13,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,7 +25,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -46,7 +44,7 @@ public class ImageProcessor {
     BufferedWriter writer;
 
     Map<URL, String> cache;
-    Set<URL> dropList;
+
 
     public void processAllImages() {
 
@@ -57,29 +55,27 @@ public class ImageProcessor {
         writer = tryCreateWriter(outputFile);
 
         cache = new ConcurrentHashMap<>();
-        dropList = ConcurrentHashMap.newKeySet();
 
         reader
             .lines()
-            .parallel()
+//            .parallel()
+            .sequential()
             .map(this::tryCreateUrl)
             .filter(Objects::nonNull)
-            .filter(url -> !dropList.contains(url))
-            .map(url -> processOneImage(url, cache, dropList, enableCache))
+            .map(url -> processOneImage(url, cache, enableCache))
             .filter(Objects::nonNull)
             .forEach(result -> writeResult(result, writer));
 
         Instant end = Instant.now();
 
-        System.out.printf("execution time: %s%n", executionTime(start, end));
+        System.out.printf("execution time: %ss%n", executionTime(start, end));
         System.out.printf("processed %d records%n", getFileLength(outputFile));
-        System.out.printf("drop list length: %d%n", dropList.size());
         System.out.printf("cache size %d records%n", cache.size());
 
     }
 
     @Suspendable
-    String processOneImage(URL url, Map<URL, String> cache, Set<URL> dropList,
+    String processOneImage(URL url, Map<URL, String> cache,
         boolean enableCache) {
         try {
             return new Fiber<>((SuspendableCallable<String>) () -> {
@@ -87,7 +83,7 @@ public class ImageProcessor {
                 if (enableCache && cache.containsKey(url)) {
                     return cache.get(url);
                 }
-                final BufferedImage image = downloadImage(url, dropList);
+                final BufferedImage image = downloadImage(url);
                 if (image != null) {
                     final String palette = detectPalette(image, url);
                     if (enableCache) {
@@ -102,11 +98,10 @@ public class ImageProcessor {
             e.printStackTrace();
         }
         return null;
-
     }
 
     @Suspendable
-    BufferedImage downloadImage(URL url, Set<URL> dropList) {
+    BufferedImage downloadImage(URL url) {
 
         try {
             return new Fiber<>((SuspendableCallable<BufferedImage>) () -> {
@@ -116,15 +111,10 @@ public class ImageProcessor {
                     if (inputStream != null) {
                         final BufferedInputStream is = new BufferedInputStream(
                             inputStream);
-                        final BufferedImage image = ImageIO.read(is);
-                        return image;
+                        return ImageIO.read(is);
                     }
-                } catch (FileNotFoundException e) {
-                    System.out.printf("adding %s to droplist%n", url.toString());
-                    dropList.add(url);
                 } catch (IOException e) {
                     System.out.printf("problem with url: %s%n", url.toString());
-
                 }
                 return null;
             }).start().get();

@@ -1,6 +1,7 @@
 package com.lmohseni;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -12,7 +13,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Set;
 
 public class ImageProcessorTest {
 
@@ -28,9 +28,6 @@ public class ImageProcessorTest {
 
     @Mock
     Map<URL, String> cache;
-
-    @Mock
-    Set<URL> dropList;
 
 
     @Before
@@ -60,19 +57,21 @@ public class ImageProcessorTest {
 
 
     @Test
+    @Ignore
     public void downloadImage() throws IOException {
         URL url = new URL("https://i.redd.it/4m5yk8gjrtzy.jpg");
-        imageProcessor.downloadImage(url, dropList);
+        imageProcessor.downloadImage(url);
     }
 
-
     @Test
+    @Ignore
     public void processOneImage() throws IOException {
         URL url = new URL("https://i.redd.it/4m5yk8gjrtzy.jpg");
-        imageProcessor.processOneImage(url, cache, dropList, true);
+        imageProcessor.processOneImage(url, cache, true);
     }
 
     @Test
+    @Ignore
     public void writeResult() throws IOException {
         final BufferedWriter writer = Files
             .newBufferedWriter(Path.of("./src/test/resources/test-writer.txt"));
@@ -88,12 +87,13 @@ public class ImageProcessorTest {
 
 
     @Test
+    @Ignore
     public void testGithubUrlNoCache() throws IOException {
         String github =
             "https://gist.githubusercontent.com/ehmo/e736c827ca73d84581d812b3a27bb132/raw/77680b283d7db4e7447dbf8903731bb63bf43258/input.txt";
         ImageProcessor.builder()
             .colorCount(3)
-            .quality(10)
+            .quality(1)
             .ignoreWhite(true)
             .enableCache(false)
             .inputFile(github)
