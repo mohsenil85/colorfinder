@@ -1,6 +1,7 @@
 
 Find the most prevalent color
 =============================
+build and run with `mvn clean package dependency:properties exec:exec`
 
 What this is
 ------------
@@ -14,7 +15,6 @@ Notes
 `mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
 1. uses https://github.com/SvenWoltmann/color-thief-java to determine color palettes 
 
-1. build and run with `mvn clean package dependency:properties exec:exec`
 
 How it works
 ------------
