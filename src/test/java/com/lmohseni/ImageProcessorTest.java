@@ -93,7 +93,7 @@ public class ImageProcessorTest {
             new int[]{7, 8, 9}
         };
         final String actual = imageProcessor.formatResult(url, palette);
-        final String expected = "https://i.redd.it/4m5yk8gjrtzy.jpg,#123,#456,#789\n";
+        final String expected = "https://i.redd.it/4m5yk8gjrtzy.jpg,#010203,#040506,#070809\n";
         assertEquals(expected, actual);
     }
 
