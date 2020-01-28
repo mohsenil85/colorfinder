@@ -98,6 +98,7 @@ public class ImageProcessor {
         return null;
     }
 
+
     @Suspendable
     BufferedImage downloadImage(URL url) {
         try {
@@ -122,6 +123,7 @@ public class ImageProcessor {
         return null;
     }
 
+
     @Suspendable
     private String detectPalette(BufferedImage image, URL url) {
         try {
@@ -142,6 +144,7 @@ public class ImageProcessor {
         return null;
     }
 
+
     @Suspendable
     void writeResult(String message, BufferedWriter writer) {
         try {
@@ -154,12 +157,13 @@ public class ImageProcessor {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                
+
             }).start().join();
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
     }
+
 
     String formatResult(URL url, int[][] palette) {
         final StringBuilder result = new StringBuilder();
@@ -172,6 +176,7 @@ public class ImageProcessor {
         return result.toString();
     }
 
+
     String convertRgbArrayToHexColor(int[] rgb) {
         return String.format(
             "#%s%s%s",
@@ -181,6 +186,8 @@ public class ImageProcessor {
         ).toUpperCase();
     }
 
+
+    //convenience functions
     private URL tryCreateUrl(String s) {
         try {
             return new URL(s);
