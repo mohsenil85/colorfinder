@@ -10,14 +10,6 @@ What this is
 ------------
 Taken from:  https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132
 
-Notes
------
-1. assumes a java 8 runtime
-1. uses Project Lombok for concision (eg, `@Builder`)
-1. project generated with
-`mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
-1. uses https://github.com/SvenWoltmann/color-thief-java to determine color palettes 
-
 
 How it works
 ------------
@@ -42,6 +34,15 @@ operations in to _fiber blocking_ operations, which frees up the (user space) sc
 In fact, there's even a a function in quasar to convert an async operation back into a fiber blocking operation.
 Overall, the experience with fibers was very positive, and I'm excited for userspace threads to come to
 the jvm.
+
+
+Notes
+-----
+1. assumes a java 11 runtime
+1. uses Project Lombok for concision (eg, `@Builder`)
+1. project generated with
+`mvn archetype:generate -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-simple -DarchetypeVersion=1.4`
+
 
 Next Steps
 ----------
