@@ -14,14 +14,14 @@ Taken from:  https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132
 How It Works
 ------------
 
-There's 2 main libraries used in this project: [color-thief-java](https://github.com/SvenWoltmann/color-thief-java)
+There are 2 main libraries used in this project: [color-thief-java](https://github.com/SvenWoltmann/color-thief-java)
 to determine palettes, and [quasar](https://github.com/puniverse/quasar)
 to facilitate concurrency.  This was my first time using fibers 
 (quasar's implementation of userspace threads) and I quite enjoyed it.
 
 The main logic of the program is the function `#processOneImage`, which takes a url, 
-first checks the cache, and if it doesn't find it in the cache, proceeds  to download an image,
-calls the Colorthief library function on it.  The return type is a string suitable for writing to the csv.
+first checks the cache, and if it doesn't find it in the cache, proceeds  to download an image
+and call the ColorThief library function on it.  The return type is a string suitable for writing to the csv.
 
 The rest of the program is pretty much standard plumbing and glue.  One surprise for me was that
 flushing the writer buffer after every write didn't add much overhead, while improving resiliency.
