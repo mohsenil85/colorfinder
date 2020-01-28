@@ -35,6 +35,9 @@ In fact, there's even a function in quasar to convert an async operation back in
 Overall, the experience with fibers was very positive, and I'm excited for userspace threads to come to
 the jvm.
 
+The main drawback with quasar as an implementation is it can be
+tricky to get the java agent set up correctly.  Also it seems like activity on the project has died out.
+
 
 Notes
 -----
