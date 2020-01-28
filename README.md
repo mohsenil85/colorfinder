@@ -6,12 +6,12 @@ Find the most prevalent color
 
 build and run with `mvn clean package dependency:properties exec:exec`
 
-What this is
+What This Is
 ------------
 Taken from:  https://gist.github.com/ehmo/e736c827ca73d84581d812b3a27bb132
 
 
-How it works
+How It Works
 ------------
 
 There's 2 main libraries used in this project: [color-thief-java](https://github.com/SvenWoltmann/color-thief-java)
@@ -28,10 +28,10 @@ flushing the writer buffer after every write didn't add much overhead, while imp
 Also, I explicitly 
 opted in to java 8's parallel stream processing.
 
-Fibers were very interesting to use, the whole idea is any remotly expensive blocking operation should be
+Fibers were very interesting to use, the whole idea is that any remotly expensive blocking operation should be
 forked off into its own fiber.  The intention is to convert any _thread blocking_ 
-operations in to _fiber blocking_ operations, which frees up the (user space) scheduler to do more.
-In fact, there's even a a function in quasar to convert an async operation back into a fiber blocking operation.
+operations into _fiber blocking_ operations, which frees up the (user space) scheduler.
+In fact, there's even a function in quasar to convert an async operation back into a fiber blocking operation.
 Overall, the experience with fibers was very positive, and I'm excited for userspace threads to come to
 the jvm.
 
