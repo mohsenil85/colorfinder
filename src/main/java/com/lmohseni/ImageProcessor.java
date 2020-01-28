@@ -59,10 +59,10 @@ public class ImageProcessor {
         reader
             .lines()
             .parallel()
-            .map(this::tryCreateUrl)
-            .filter(Objects::nonNull)
+            .map(line -> tryCreateUrl(line))
+            .filter(maybeUrl -> Objects.nonNull(maybeUrl))
             .map(url -> processOneImage(url, cache, enableCache))
-            .filter(Objects::nonNull)
+            .filter(maybeResult -> Objects.nonNull(maybeResult))
             .forEach(result -> writeResult(result, writer));
 
         Instant end = Instant.now();
