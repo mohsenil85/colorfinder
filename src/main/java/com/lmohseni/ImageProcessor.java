@@ -28,6 +28,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
+import static java.util.Objects.nonNull;
+
 @Builder
 public class ImageProcessor {
 
@@ -60,9 +62,9 @@ public class ImageProcessor {
             .lines()
             .parallel()
             .map(line -> tryCreateUrl(line))
-            .filter(maybeUrl -> Objects.nonNull(maybeUrl))
+            .filter(maybeUrl -> nonNull(maybeUrl))
             .map(url -> processOneImage(url, cache, enableCache))
-            .filter(maybeResult -> Objects.nonNull(maybeResult))
+            .filter(maybeResult -> nonNull(maybeResult))
             .forEach(result -> writeResult(result, writer));
 
         Instant end = Instant.now();
