@@ -178,12 +178,7 @@ public class ImageProcessor {
 
 
     String convertRgbArrayToHexColor(int[] rgb) {
-        return String.format(
-            "#%s%s%s",
-            Integer.toHexString(rgb[0]),
-            Integer.toHexString(rgb[1]),
-            Integer.toHexString(rgb[2])
-        ).toUpperCase();
+        return String.format("#%02X%02X%02X", rgb[0], rgb[1], rgb[2]);
     }
 
 

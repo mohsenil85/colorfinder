@@ -101,7 +101,7 @@ public class ImageProcessorTest {
     public void convertRgbArrayToHexColor123() {
         int[] rgb = new int[]{1, 2, 3};
         final String actual = imageProcessor.convertRgbArrayToHexColor(rgb);
-        final String expected = "#123";
+        final String expected = "#010203";
         assertEquals(expected, actual);
     }
 
@@ -109,7 +109,7 @@ public class ImageProcessorTest {
     public void convertRgbArrayToHexColorABC() {
         int[] rgb = new int[]{10, 11, 12};
         final String actual = imageProcessor.convertRgbArrayToHexColor(rgb);
-        final String expected = "#ABC";
+        final String expected = "#0A0B0C";
         assertEquals(expected, actual);
     }
 
