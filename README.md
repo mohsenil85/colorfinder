@@ -1,6 +1,9 @@
 
 Find the most prevalent color
 =============================
+
+![Java CI](https://github.com/mohsenil85/colorfinder/workflows/Java%20CI/badge.svg)
+
 build and run with `mvn clean package dependency:properties exec:exec`
 
 What this is
