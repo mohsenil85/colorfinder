@@ -21,7 +21,7 @@ How it works
 
 There's 2 main libraries used in this project:  
 [color-thief-java](https://github.com/SvenWoltmann/color-thief-java)
-to determine palettes, and [quasar](https://github.com/quasarframework/quasar)
+to determine palettes, and [quasar](https://github.com/puniverse/quasar)
 to facilitate concurrency.  This was my first time using fibers 
 (quasar's implementation of userspace threads) and I quite enjoyed it.
 
